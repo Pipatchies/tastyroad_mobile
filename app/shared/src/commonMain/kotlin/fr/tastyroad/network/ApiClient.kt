@@ -8,7 +8,7 @@ import io.ktor.client.plugins.defaultRequest
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
-class ApiClientTest(
+class ApiClient(
     private val baseUrl: String = Config.BASE_URL,
     engine: HttpClientEngine? = null
 ) {
@@ -29,7 +29,6 @@ class ApiClientTest(
     }
 }
 
-// Un Singleton pour faciliter l'accès dans le vrai code de l'application (hors tests)
 object AppClient {
-    val instance = ApiClientTest().client
+    val instance = ApiClient().client
 }
