@@ -20,10 +20,18 @@ class ItineraryRepository {
         return client.get("/itineraries/").body()
     }
 
-    suspend fun createItinerary(
-        token: String,
-        newItinerary: Itinerary,
-    ): Itinerary {
+    suspend fun getMyFavoriteItineraries(token: String): List<Itinerary> {
+        return client.get("/favorites/") {
+            header("Authorization", "Bearer $token")
+        }.body()
+    }
+
+
+    suspend fun getItineraryById(id: Int): Itinerary {
+        return client.get("/itineraries/$id/").body()
+    }
+
+    suspend fun createItinerary(token: String, newItinerary: Itinerary): Itinerary {
         return client.post("/itineraries/") {
             header("Authorization", "Bearer $token")
             contentType(ContentType.Application.Json)
@@ -31,11 +39,7 @@ class ItineraryRepository {
         }.body()
     }
 
-    suspend fun updateItinerary(
-        token: String,
-        itineraryId: Int,
-        updatedItinerary: Itinerary,
-    ): Itinerary {
+    suspend fun updateItinerary(token: String, itineraryId: Int, updatedItinerary: Itinerary): Itinerary {
         return client.put("/itineraries/$itineraryId/") {
             header("Authorization", "Bearer $token")
             contentType(ContentType.Application.Json)
@@ -43,15 +47,10 @@ class ItineraryRepository {
         }.body()
     }
 
-    suspend fun deleteItinerary(
-        token: String,
-        itineraryId: Int,
-    ): Boolean {
-        // L'URL inclut l'ID de l'itinéraire à supprimer
-        val response =
-            client.delete("/itineraries/$itineraryId/") {
-                header("Authorization", "Bearer $token")
-            }
+    suspend fun deleteItinerary(token: String, itineraryId: Int): Boolean {
+        val response = client.delete("/itineraries/$itineraryId/") {
+            header("Authorization", "Bearer $token")
+        }
         return response.status.isSuccess()
     }
 }
