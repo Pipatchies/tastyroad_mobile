@@ -10,18 +10,24 @@ import kotlinx.serialization.json.Json
 
 class ApiClient(
     private val baseUrl: String = Config.BASE_URL,
-    engine: HttpClientEngine? = null
+    engine: HttpClientEngine? = null,
 ) {
-    val client = if (engine != null) HttpClient(engine) { configureKtor(baseUrl) }
-    else HttpClient { configureKtor(baseUrl) }
+    val client =
+        if (engine != null) {
+            HttpClient(engine) { configureKtor(baseUrl) }
+        } else {
+            HttpClient { configureKtor(baseUrl) }
+        }
 
     private fun HttpClientConfig<*>.configureKtor(baseUrl: String) {
         install(ContentNegotiation) {
-            json(Json {
-                ignoreUnknownKeys = true
-                prettyPrint = true
-                isLenient = true
-            })
+            json(
+                Json {
+                    ignoreUnknownKeys = true
+                    prettyPrint = true
+                    isLenient = true
+                },
+            )
         }
         defaultRequest {
             url(baseUrl)

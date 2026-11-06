@@ -8,5 +8,5 @@ data class Comment(
     val content: String,
     val review: Int,
     val author: Int,
-    val itinerary: Int
+    val itinerary: Int,
 )

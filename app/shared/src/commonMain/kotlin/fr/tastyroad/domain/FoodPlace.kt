@@ -9,5 +9,5 @@ data class FoodPlace(
     val name: String,
     val type: String? = null,
     val description: String? = null,
-    val location: JsonObject? = null
+    val location: JsonObject? = null,
 )

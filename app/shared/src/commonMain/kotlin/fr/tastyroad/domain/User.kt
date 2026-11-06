@@ -7,5 +7,5 @@ data class User(
     val id: Int,
     val username: String,
     val age: Int? = null,
-    val avatar: String? = null
+    val avatar: String? = null,
 )

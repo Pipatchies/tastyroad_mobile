@@ -13,5 +13,5 @@ data class Step(
     @SerialName("step_order") val stepOrder: Int,
     val location: JsonObject? = null,
     val itinerary: Int,
-    val foodplace: Int? = null
+    val foodplace: Int? = null,
 )
