@@ -76,12 +76,11 @@ fun CreateItineraryScreen(
     val isDescriptionValid = description.isNotBlank()
     val isFormValid = isStepsValid && isTitleValid && isDescriptionValid
 
-    val formattedDuration =
-        run {
-            val hours = durationMinutes / 60
-            val mins = durationMinutes % 60
-            if (hours > 0) "${hours}h ${mins.toString().padStart(2, '0')}" else "$mins min"
-        }
+    val formattedDuration = run {
+        val hours = durationMinutes / 60
+        val mins = durationMinutes % 60
+        if (hours > 0) "${hours}h ${mins.toString().padStart(2, '0')}" else "${mins} min"
+    }
 
     val types = listOf("Rando", "Vélo", "Moto")
     val zones = listOf("Occitanie, France", "PACA, France", "Nord, France", "Île-de-France", "Bretagne")
@@ -89,12 +88,11 @@ fun CreateItineraryScreen(
     val gastronomies = listOf("Viande", "Poisson", "Fromage", "Vignoble", "Végétarien")
 
     if (!isFormExpanded) {
-        // --- PHASE 1 : MODE TRACÉ SUR CARTE (Carte Plein Écran) ---
+        // --- PHASE 1 : MODE TRACÉ SUR CARTE  ---
         Box(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
         ) {
             CreationMapView(
                 transportType = selectedType,
@@ -112,11 +110,10 @@ fun CreateItineraryScreen(
                 shape = CircleShape,
                 color = Color.White,
                 border = BorderStroke(1.dp, Color.Black),
-                modifier =
-                    Modifier
-                        .padding(16.dp)
-                        .size(36.dp)
-                        .align(Alignment.TopStart),
+                modifier = Modifier
+                    .padding(16.dp)
+                    .size(36.dp)
+                    .align(Alignment.TopStart),
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
@@ -133,28 +130,25 @@ fun CreateItineraryScreen(
                 onValueChange = { foodPlaceSearchQuery = it },
                 placeholder = { Text("Chercher un lieu gourmand (ex: Fromagerie)...", style = MaterialTheme.typography.bodySmall) },
                 trailingIcon = { Icon(Icons.Default.Search, contentDescription = "Rechercher", tint = Color.Gray) },
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(start = 64.dp, end = 16.dp, top = 12.dp)
-                        .align(Alignment.TopCenter),
-                shape = RoundedCornerShape(40.dp),
-                colors =
-                    TextFieldDefaults.colors(
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                    ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 64.dp, end = 16.dp, top = 12.dp)
+                    .align(Alignment.TopCenter),
+                shape = RoundedCornerShape(16.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                ),
                 singleLine = true,
             )
 
             Column(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.BottomCenter)
-                        .padding(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 MetricsBox(
@@ -163,7 +157,7 @@ fun CreateItineraryScreen(
                     metric2Value = formattedDuration,
                     metric2Label = "durée",
                     metric3Value = "$stepCount",
-                    metric3Label = "étapes",
+                    metric3Label = "étapes"
                 )
 
                 if (showStepError && !isStepsValid) {
@@ -173,7 +167,7 @@ fun CreateItineraryScreen(
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 8.dp),
+                        modifier = Modifier.padding(horizontal = 8.dp)
                     )
                 }
 
@@ -194,19 +188,17 @@ fun CreateItineraryScreen(
             }
         }
     } else {
-//        --- PHASE 2 : MODE FORMULAIRE (Formulaire) ---
+        // --- PHASE 2 : MODE FORMULAIRE ---
         Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
         ) {
             Box(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)),
             ) {
                 CreationMapView(
                     transportType = selectedType,
@@ -223,11 +215,10 @@ fun CreateItineraryScreen(
                     shape = CircleShape,
                     color = Color.White,
                     border = BorderStroke(1.dp, Color.Black),
-                    modifier =
-                        Modifier
-                            .padding(16.dp)
-                            .size(36.dp)
-                            .align(Alignment.TopStart),
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .size(36.dp)
+                        .align(Alignment.TopStart),
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
@@ -241,12 +232,11 @@ fun CreateItineraryScreen(
             }
 
             Column(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .verticalScroll(rememberScrollState())
-                        .padding(24.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp),
             ) {
                 TastyRoadButton(
                     text = "← Modifier le tracé sur la carte",
@@ -274,14 +264,13 @@ fun CreateItineraryScreen(
                     placeholder = { Text(text = "Ex: La Route des Fromages d'Auvergne", color = Color.Gray, fontStyle = FontStyle.Italic) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    colors =
-                        TextFieldDefaults.colors(
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White,
-                            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                            unfocusedIndicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                            errorContainerColor = Color.White,
-                        ),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                        focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                        unfocusedIndicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                        errorContainerColor = Color.White,
+                    ),
                     singleLine = true,
                 )
 
@@ -290,7 +279,7 @@ fun CreateItineraryScreen(
                         text = "Le titre de l'itinéraire est obligatoire",
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(start = 4.dp, top = 4.dp),
+                        modifier = Modifier.padding(start = 4.dp, top = 4.dp)
                     )
                 }
 
@@ -302,7 +291,7 @@ fun CreateItineraryScreen(
                     metric2Value = formattedDuration,
                     metric2Label = "durée",
                     metric3Value = "$stepCount",
-                    metric3Label = "étapes",
+                    metric3Label = "étapes"
                 )
 
                 if (showFormErrors && !isStepsValid) {
@@ -311,11 +300,12 @@ fun CreateItineraryScreen(
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(top = 4.dp),
+                        modifier = Modifier.padding(top = 4.dp)
                     )
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
+
 
                 FormSectionLabel("Type de transport")
                 FlowRow(
@@ -328,22 +318,20 @@ fun CreateItineraryScreen(
                             selected = isSelected,
                             onClick = { selectedType = type },
                             label = { Text(type) },
-                            shape = RoundedCornerShape(40.dp),
-                            colors =
-                                FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                                    containerColor = Color(0xFFF7EBD3),
-                                    labelColor = MaterialTheme.colorScheme.onBackground,
-                                ),
-                            border =
-                                FilterChipDefaults.filterChipBorder(
-                                    enabled = true,
-                                    selected = isSelected,
-                                    borderColor = MaterialTheme.colorScheme.primary,
-                                    selectedBorderColor = MaterialTheme.colorScheme.primary,
-                                    borderWidth = 1.dp,
-                                ),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                containerColor = Color(0xFFF7EBD3),
+                                labelColor = MaterialTheme.colorScheme.onBackground,
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = isSelected,
+                                borderColor = MaterialTheme.colorScheme.primary,
+                                selectedBorderColor = MaterialTheme.colorScheme.primary,
+                                borderWidth = 1.dp,
+                            ),
                         )
                     }
                 }
@@ -361,22 +349,20 @@ fun CreateItineraryScreen(
                             selected = isSelected,
                             onClick = { selectedZone = zone },
                             label = { Text(zone) },
-                            shape = RoundedCornerShape(40.dp),
-                            colors =
-                                FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                                    containerColor = Color(0xFFF7EBD3),
-                                    labelColor = MaterialTheme.colorScheme.onBackground,
-                                ),
-                            border =
-                                FilterChipDefaults.filterChipBorder(
-                                    enabled = true,
-                                    selected = isSelected,
-                                    borderColor = MaterialTheme.colorScheme.primary,
-                                    selectedBorderColor = MaterialTheme.colorScheme.primary,
-                                    borderWidth = 1.dp,
-                                ),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                containerColor = Color(0xFFF7EBD3),
+                                labelColor = MaterialTheme.colorScheme.onBackground,
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = isSelected,
+                                borderColor = MaterialTheme.colorScheme.primary,
+                                selectedBorderColor = MaterialTheme.colorScheme.primary,
+                                borderWidth = 1.dp,
+                            ),
                         )
                     }
                 }
@@ -394,22 +380,20 @@ fun CreateItineraryScreen(
                             selected = isSelected,
                             onClick = { selectedDifficulty = diff },
                             label = { Text(diff) },
-                            shape = RoundedCornerShape(40.dp),
-                            colors =
-                                FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                                    containerColor = Color(0xFFF7EBD3),
-                                    labelColor = MaterialTheme.colorScheme.onBackground,
-                                ),
-                            border =
-                                FilterChipDefaults.filterChipBorder(
-                                    enabled = true,
-                                    selected = isSelected,
-                                    borderColor = MaterialTheme.colorScheme.primary,
-                                    selectedBorderColor = MaterialTheme.colorScheme.primary,
-                                    borderWidth = 1.dp,
-                                ),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                containerColor = Color(0xFFF7EBD3),
+                                labelColor = MaterialTheme.colorScheme.onBackground,
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = isSelected,
+                                borderColor = MaterialTheme.colorScheme.primary,
+                                selectedBorderColor = MaterialTheme.colorScheme.primary,
+                                borderWidth = 1.dp,
+                            ),
                         )
                     }
                 }
@@ -427,22 +411,20 @@ fun CreateItineraryScreen(
                             selected = isSelected,
                             onClick = { selectedGastronomy = gastro },
                             label = { Text(gastro) },
-                            shape = RoundedCornerShape(40.dp),
-                            colors =
-                                FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                                    containerColor = Color(0xFFF7EBD3),
-                                    labelColor = MaterialTheme.colorScheme.onBackground,
-                                ),
-                            border =
-                                FilterChipDefaults.filterChipBorder(
-                                    enabled = true,
-                                    selected = isSelected,
-                                    borderColor = MaterialTheme.colorScheme.primary,
-                                    selectedBorderColor = MaterialTheme.colorScheme.primary,
-                                    borderWidth = 1.dp,
-                                ),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                containerColor = Color(0xFFF7EBD3),
+                                labelColor = MaterialTheme.colorScheme.onBackground,
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = isSelected,
+                                borderColor = MaterialTheme.colorScheme.primary,
+                                selectedBorderColor = MaterialTheme.colorScheme.primary,
+                                borderWidth = 1.dp,
+                            ),
                         )
                     }
                 }
@@ -461,19 +443,17 @@ fun CreateItineraryScreen(
                             fontStyle = FontStyle.Italic,
                         )
                     },
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .height(100.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors =
-                        TextFieldDefaults.colors(
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White,
-                            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                            unfocusedIndicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                            errorContainerColor = Color.White,
-                        ),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                        focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                        unfocusedIndicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                        errorContainerColor = Color.White,
+                    ),
                 )
 
                 if (showFormErrors && !isDescriptionValid) {
