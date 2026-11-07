@@ -77,6 +77,8 @@ kotlin {
             implementation(libs.ktor.client.cio)
             implementation(libs.navigation.compose)
             implementation(libs.compose.material.icons.extended)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
