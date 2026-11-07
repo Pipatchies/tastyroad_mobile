@@ -3,6 +3,7 @@ package fr.tastyroad.repository
 import fr.tastyroad.domain.User
 import fr.tastyroad.network.AppClient
 import io.ktor.client.call.body
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.put
@@ -32,5 +33,11 @@ class UserRepository {
             contentType(ContentType.Application.Json)
             setBody(updatedUser)
         }.body()
+    }
+
+    suspend fun deleteMyAccount(token: String) {
+        client.delete("/users/me/") {
+            header("Authorization", "Bearer $token")
+        }
     }
 }

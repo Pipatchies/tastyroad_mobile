@@ -19,14 +19,18 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import fr.tastyroad.domain.MockData
 import fr.tastyroad.repository.AuthSession
+import fr.tastyroad.repository.UserRepository
 import fr.tastyroad.ui.components.buttons.ButtonVariant
 import fr.tastyroad.ui.components.buttons.TastyRoadButton
 import fr.tastyroad.ui.components.cards.ItineraryCard
@@ -47,6 +52,7 @@ import fr.tastyroad.ui.components.cards.ReviewCard
 import fr.tastyroad.ui.components.header.Header
 import fr.tastyroad.ui.components.metrics.MetricsBox
 import fr.tastyroad.ui.theme.TastyRoadTheme
+import kotlinx.coroutines.launch
 
 private const val DEFAULT_AVATAR =
     "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=300&auto=format&fit=crop"
@@ -56,10 +62,14 @@ fun ProfileScreen(
     onLogoutClick: () -> Unit,
     onMapClick: () -> Unit = {},
     initialTabIndex: Int = 0,
+    userRepository: UserRepository = remember { UserRepository() },
 ) {
     val user = AuthSession.currentUser
     var selectedTabIndex by remember { mutableIntStateOf(initialTabIndex) }
     val tabTitles = listOf("Mes itinéraires", "Mes favoris", "Mes avis", "Mes photos")
+
+    var showDeleteAccountDialog by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
 
     Column(
         modifier =
@@ -263,8 +273,77 @@ fun ProfileScreen(
                         .padding(horizontal = 24.dp),
             )
 
+            Spacer(modifier = Modifier.height(12.dp))
+
+            TastyRoadButton(
+                text = "Supprimer mon compte (Droit à l'oubli RGPD)",
+                onClick = {
+                    showDeleteAccountDialog = true
+                },
+                variant = ButtonVariant.SECONDARY,
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+            )
+
             Spacer(modifier = Modifier.height(40.dp))
         }
+    }
+
+    if (showDeleteAccountDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteAccountDialog = false },
+            title = {
+                Text(
+                    text = "Suppression définitive du compte",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+            },
+            text = {
+                Text(
+                    text =
+                        "Conformément au RGPD, cette action supprimera définitivement votre compte, " +
+                            "l'intégralité de vos itinéraires et toutes vos coordonnées GPS en base de données. " +
+                            "Cette action est irréversible.",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val token = AuthSession.token
+                        if (token != null) {
+                            coroutineScope.launch {
+                                try {
+                                    userRepository.deleteMyAccount(token)
+                                } catch (_: Exception) {
+                                }
+                                AuthSession.logout()
+                                showDeleteAccountDialog = false
+                                onLogoutClick()
+                            }
+                        } else {
+                            AuthSession.logout()
+                            showDeleteAccountDialog = false
+                            onLogoutClick()
+                        }
+                    },
+                ) {
+                    Text(
+                        text = "Supprimer définitivement",
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteAccountDialog = false }) {
+                    Text("Annuler", color = Color.Gray)
+                }
+            },
+        )
     }
 }
 
