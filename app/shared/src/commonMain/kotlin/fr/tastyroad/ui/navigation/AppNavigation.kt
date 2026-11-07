@@ -7,7 +7,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import fr.tastyroad.ui.screens.CreateItineraryScreen
 import fr.tastyroad.ui.screens.HomeScreen
 import fr.tastyroad.ui.screens.MapScreen
 
@@ -55,14 +54,7 @@ fun AppNavigation(
         }
 
         composable<Screen.CreateItinerary> {
-            CreateItineraryScreen(
-                onCloseClick = {
-                    navController.popBackStack()
-                },
-                onSaveSuccess = {
-                    navController.popBackStack()
-                },
-            )
+            Text("Écran de création d'itinéraire")
         }
 
         composable<Screen.ItineraryDetail> { backStackEntry ->
