@@ -56,13 +56,10 @@ fun MapScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background),
     ) {
-        // 1. Header vert fixe
         Header()
 
-        // 2. Filtres
         FilterSection()
 
-        // 3. Zone Carte Interactive OpenStreetMap
         Box(
             modifier =
                 Modifier
@@ -72,13 +69,11 @@ fun MapScreen(
                     .clip(RoundedCornerShape(16.dp))
                     .border(2.dp, MaterialTheme.colorScheme.secondary, RoundedCornerShape(16.dp)),
         ) {
-            // VRAIE CARTE INTERACTIVE (Leaflet.js + OSM Tiles + Touch Gestures)
             InteractiveMapView(
                 clusters = clusters,
                 modifier = Modifier.fillMaxSize(),
             )
 
-            // BOUTON FERMER 'X' (Haut Gauche de la carte)
             Surface(
                 onClick = onCloseClick,
                 shape = CircleShape,
@@ -99,8 +94,6 @@ fun MapScreen(
                     )
                 }
             }
-
-            // BOUTON "Ajouter un itinéraire" (Bas Centre)
             TastyRoadButton(
                 text = "Ajouter un itinéraire",
                 onClick = onCreateItineraryClick,

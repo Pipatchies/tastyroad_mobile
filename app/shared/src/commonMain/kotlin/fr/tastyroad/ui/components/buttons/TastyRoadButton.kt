@@ -33,7 +33,7 @@ fun TastyRoadButton(
     variant: ButtonVariant = ButtonVariant.PRIMARY,
     icon: ImageVector? = null,
 ) {
-    val shape = RoundedCornerShape(50)
+    val shape = RoundedCornerShape(40.dp)
 
     when (variant) {
         ButtonVariant.PRIMARY -> {
