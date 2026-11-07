@@ -28,21 +28,22 @@ private data class NavItem(
     val screen: Screen,
     val filledIcon: ImageVector,
     val outlinedIcon: ImageVector,
-    val label: String
+    val label: String,
 )
 
 @Composable
 fun BottomNavBar(navController: NavController) {
     val backgroundColor = Color(0xFF062D2A)
     val iconColor = Color(0xFFF7F0E4)
-    val transparent = Color.Transparent 
+    val transparent = Color.Transparent
 
-    val tabs = listOf(
-        NavItem(Screen.Home, Icons.Filled.Home, Icons.Outlined.Home, "Accueil"),
-        NavItem(Screen.Community, Icons.Filled.Groups, Icons.Outlined.Groups, "Communauté"),
-        NavItem(Screen.Favorites, Icons.Filled.Favorite, Icons.Outlined.FavoriteBorder, "Favoris"),
-        NavItem(Screen.Profile, Icons.Filled.Person, Icons.Outlined.Person, "Profil")
-    )
+    val tabs =
+        listOf(
+            NavItem(Screen.Home, Icons.Filled.Home, Icons.Outlined.Home, "Accueil"),
+            NavItem(Screen.Community, Icons.Filled.Groups, Icons.Outlined.Groups, "Communauté"),
+            NavItem(Screen.Favorites, Icons.Filled.Favorite, Icons.Outlined.FavoriteBorder, "Favoris"),
+            NavItem(Screen.Profile, Icons.Filled.Person, Icons.Outlined.Person, "Profil"),
+        )
 
     val currentEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentEntry?.destination?.route ?: ""
@@ -50,7 +51,7 @@ fun BottomNavBar(navController: NavController) {
     // ON APPLIQUE EXPLICITEMENT LA COULEUR ICI
     NavigationBar(
         containerColor = backgroundColor,
-        contentColor = iconColor
+        contentColor = iconColor,
     ) {
         tabs.forEach { tab ->
             val screenName = tab.screen::class.simpleName ?: ""
@@ -58,7 +59,7 @@ fun BottomNavBar(navController: NavController) {
 
             NavigationBarItem(
                 selected = isSelected,
-                onClick = { 
+                onClick = {
                     navController.navigate(tab.screen) {
                         popUpTo<Screen.Home> { saveState = true }
                         launchSingleTop = true
@@ -69,15 +70,15 @@ fun BottomNavBar(navController: NavController) {
                     Icon(
                         imageVector = if (isSelected) tab.filledIcon else tab.outlinedIcon,
                         contentDescription = tab.label,
-                        modifier = Modifier.size(46.dp)
-
+                        modifier = Modifier.size(46.dp),
                     )
                 },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = iconColor,
-                    unselectedIconColor = iconColor,
-                    indicatorColor = transparent
-                )
+                colors =
+                    NavigationBarItemDefaults.colors(
+                        selectedIconColor = iconColor,
+                        unselectedIconColor = iconColor,
+                        indicatorColor = transparent,
+                    ),
             )
         }
     }
