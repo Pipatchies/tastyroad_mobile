@@ -1,4 +1,4 @@
-package fr.tastyroad.ui.components
+package fr.tastyroad.ui.components.footer
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons

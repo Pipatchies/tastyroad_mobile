@@ -1,4 +1,4 @@
-package fr.tastyroad.ui.components
+package fr.tastyroad.ui.components.header
 
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Outline

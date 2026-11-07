@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
-import fr.tastyroad.ui.components.BottomNavBar
+import fr.tastyroad.ui.components.footer.BottomNavBar
 import fr.tastyroad.ui.navigation.AppNavigation
 import fr.tastyroad.ui.theme.TastyRoadTheme
 
