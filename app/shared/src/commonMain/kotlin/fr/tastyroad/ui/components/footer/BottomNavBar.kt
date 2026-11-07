@@ -11,6 +11,7 @@ import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -23,7 +24,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import fr.tastyroad.ui.navigation.Screen
-import androidx.compose.material3.MaterialTheme
 
 private data class NavItem(
     val screen: Screen,
@@ -60,10 +60,14 @@ fun BottomNavBar(navController: NavController) {
             NavigationBarItem(
                 selected = isSelected,
                 onClick = {
-                    navController.navigate(tab.screen) {
-                        popUpTo<Screen.Home> { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
+                    if (tab.screen == Screen.Home) {
+                        navController.popBackStack<Screen.Home>(inclusive = false)
+                    } else {
+                        navController.navigate(tab.screen) {
+                            popUpTo<Screen.Home> { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 },
                 icon = {
