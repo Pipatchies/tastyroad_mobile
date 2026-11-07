@@ -7,6 +7,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import fr.tastyroad.ui.screens.HomeScreen
 
 @Composable
 fun AppNavigation(
@@ -19,8 +20,7 @@ fun AppNavigation(
         modifier = modifier,
     ) {
         composable<Screen.Home> {
-            // TODO: Remplacer par le vrai composant Home
-            Text("Écran d'Accueil")
+            HomeScreen()
         }
 
         composable<Screen.Community> {
