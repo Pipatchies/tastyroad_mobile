@@ -16,11 +16,11 @@ fun App() {
     Scaffold(
         bottomBar = {
             // Footer à implémenter plus tard
-        }
+        },
     ) { innerPadding ->
         AppNavigation(
             navController = navController,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
         )
     }
 }

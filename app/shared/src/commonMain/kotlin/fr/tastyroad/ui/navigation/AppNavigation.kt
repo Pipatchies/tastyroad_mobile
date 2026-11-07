@@ -2,21 +2,22 @@ package fr.tastyroad.ui.navigation
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import androidx.compose.ui.Modifier
 
 @Composable
-fun AppNavigation(navController: NavHostController,  modifier: Modifier = Modifier) {
-
+fun AppNavigation(
+    navController: NavHostController,
+    modifier: Modifier = Modifier,
+) {
     NavHost(
         navController = navController,
         startDestination = Screen.Home,
-        modifier = modifier
+        modifier = modifier,
     ) {
-
         composable<Screen.Home> {
             // TODO: Remplacer par le vrai composant Home
             Text("Écran d'Accueil")
