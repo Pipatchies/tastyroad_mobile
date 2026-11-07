@@ -11,20 +11,23 @@ class CurvedBottomShape : Shape {
     override fun createOutline(
         size: Size,
         layoutDirection: LayoutDirection,
-        density: Density
+        density: Density,
     ): Outline {
-        val path = Path().apply {
-            moveTo(0f, 0f)
-            lineTo(size.width, 0f)
-            lineTo(size.width, size.height - 50f)
+        val path =
+            Path().apply {
+                moveTo(0f, 0f)
+                lineTo(size.width, 0f)
+                lineTo(size.width, size.height - 50f)
 
-            quadraticBezierTo(
-                x1 = size.width / 2f, y1 = size.height,
-                x2 = 0f, y2 = size.height - 50f
-            )
+                quadraticBezierTo(
+                    x1 = size.width / 2f,
+                    y1 = size.height,
+                    x2 = 0f,
+                    y2 = size.height - 50f,
+                )
 
-            close()
-        }
+                close()
+            }
         return Outline.Generic(path)
     }
 }

@@ -23,7 +23,7 @@ fun AppNavigation(
             HomeScreen(
                 onMapClick = {
                     navController.navigate(Screen.Map)
-                }
+                },
             )
         }
 

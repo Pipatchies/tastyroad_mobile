@@ -34,65 +34,67 @@ import fr.tastyroad.domain.ItineraryDisplayItem
 @Composable
 fun ItineraryCard(
     item: ItineraryDisplayItem,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val itinerary = item.itinerary
 
     Card(
         shape = RoundedCornerShape(16.dp),
-        modifier = modifier
-            .fillMaxWidth()
-            .height(280.dp)
-            .padding(horizontal = 24.dp, vertical = 12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(280.dp)
+                .padding(horizontal = 24.dp, vertical = 12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-
             AsyncImage(
                 model = item.imageUrl,
                 contentDescription = itinerary.title,
                 contentScale = ContentScale.Crop,
                 alpha = 0.85f,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
             )
 
             Surface(
                 color = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(50),
-                modifier = Modifier
-                    .padding(16.dp)
-                    .align(Alignment.TopStart)
+                modifier =
+                    Modifier
+                        .padding(16.dp)
+                        .align(Alignment.TopStart),
             ) {
                 Text(
                     text = itinerary.difficulty ?: "Inconnu",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                 )
             }
 
             Surface(
                 color = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(50),
-                modifier = Modifier
-                    .padding(16.dp)
-                    .align(Alignment.TopEnd)
+                modifier =
+                    Modifier
+                        .padding(16.dp)
+                        .align(Alignment.TopEnd),
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Star,
                         contentDescription = "Note",
                         tint = Color(0xFFFFC107),
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(16.dp),
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = item.rating.toString(),
                         style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
                 }
             }
@@ -100,28 +102,29 @@ fun ItineraryCard(
             Surface(
                 color = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(16.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .padding(8.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                        .padding(8.dp),
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
                             text = itinerary.title,
                             style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             itinerary.type?.let { BadgeItem(it) }
                             itinerary.diet?.let { BadgeItem(it) }
                         }
                     }
-                    
+
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -129,13 +132,13 @@ fun ItineraryCard(
                             imageVector = Icons.Filled.LocationOn,
                             contentDescription = "Lieu",
                             tint = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.size(14.dp)
+                            modifier = Modifier.size(14.dp),
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = itinerary.zone ?: "",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.Gray
+                            color = Color.Gray,
                         )
                     }
 
@@ -143,7 +146,7 @@ fun ItineraryCard(
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                        horizontalArrangement = Arrangement.SpaceEvenly,
                     ) {
                         StatItem(value = "${itinerary.distance?.toInt() ?: 0}", label = "km")
                         StatItem(value = itinerary.duration ?: "0", label = "durée")
@@ -159,30 +162,33 @@ fun ItineraryCard(
 private fun BadgeItem(text: String) {
     Surface(
         color = MaterialTheme.colorScheme.primary,
-        shape = RoundedCornerShape(50)
+        shape = RoundedCornerShape(50),
     ) {
         Text(
             text = text,
             color = MaterialTheme.colorScheme.onPrimary,
             style = MaterialTheme.typography.labelLarge,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
         )
     }
 }
 
 @Composable
-private fun StatItem(value: String, label: String) {
+private fun StatItem(
+    value: String,
+    label: String,
+) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = value,
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
         )
         Text(
             text = label,
             style = MaterialTheme.typography.bodySmall,
-            color = Color.Gray
+            color = Color.Gray,
         )
     }
 }

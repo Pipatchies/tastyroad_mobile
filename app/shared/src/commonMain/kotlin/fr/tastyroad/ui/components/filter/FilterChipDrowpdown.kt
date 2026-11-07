@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 fun FilterChipDropdown(
     filterName: String,
     options: List<String>,
-    onOptionSelected: (String) -> Unit
+    onOptionSelected: (String) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -39,23 +39,24 @@ fun FilterChipDropdown(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.background,
             border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-            modifier = Modifier
-                .clickable { expanded = !expanded }
+            modifier =
+                Modifier
+                    .clickable { expanded = !expanded },
         ) {
             Row(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = filterName,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = MaterialTheme.colorScheme.onBackground,
                 )
                 Icon(
                     imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                     contentDescription = if (expanded) "Fermer" else "Ouvrir",
                     modifier = Modifier.padding(start = 4.dp),
-                    tint = MaterialTheme.colorScheme.onBackground
+                    tint = MaterialTheme.colorScheme.onBackground,
                 )
             }
         }
@@ -73,13 +74,13 @@ fun FilterChipDropdown(
                         Text(
                             text = option,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onBackground
+                            color = MaterialTheme.colorScheme.onBackground,
                         )
                     },
                     onClick = {
                         onOptionSelected(option)
                         expanded = false
-                    }
+                    },
                 )
             }
         }
