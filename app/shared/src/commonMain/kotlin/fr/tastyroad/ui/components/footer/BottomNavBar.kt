@@ -1,4 +1,4 @@
-package fr.tastyroad.ui.components
+package fr.tastyroad.ui.components.footer
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -11,6 +11,7 @@ import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -33,8 +34,8 @@ private data class NavItem(
 
 @Composable
 fun BottomNavBar(navController: NavController) {
-    val backgroundColor = Color(0xFF062D2A)
-    val iconColor = Color(0xFFF7F0E4)
+    val backgroundColor = MaterialTheme.colorScheme.secondary
+    val iconColor = MaterialTheme.colorScheme.onSecondary
     val transparent = Color.Transparent
 
     val tabs =
@@ -48,7 +49,6 @@ fun BottomNavBar(navController: NavController) {
     val currentEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentEntry?.destination?.route ?: ""
 
-    // ON APPLIQUE EXPLICITEMENT LA COULEUR ICI
     NavigationBar(
         containerColor = backgroundColor,
         contentColor = iconColor,
