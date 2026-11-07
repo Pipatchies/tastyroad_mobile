@@ -7,9 +7,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import fr.tastyroad.repository.AuthSession
+import fr.tastyroad.ui.screens.AuthScreen
 import fr.tastyroad.ui.screens.CreateItineraryScreen
 import fr.tastyroad.ui.screens.HomeScreen
 import fr.tastyroad.ui.screens.MapScreen
+import fr.tastyroad.ui.screens.ProfileScreen
 
 @Composable
 fun AppNavigation(
@@ -38,7 +41,19 @@ fun AppNavigation(
         }
 
         composable<Screen.Profile> {
-            Text("Écran du Profil Utilisateur")
+            if (AuthSession.isLoggedIn) {
+                ProfileScreen(
+                    onLogoutClick = {
+                        // Se déconnecte et rafraîchit la vue
+                    },
+                )
+            } else {
+                AuthScreen(
+                    onAuthSuccess = {
+                        // Connexion / Inscription réussie !
+                    },
+                )
+            }
         }
 
         composable<Screen.Map> {
@@ -57,12 +72,14 @@ fun AppNavigation(
         composable<Screen.CreateItinerary> {
             CreateItineraryScreen(
                 onCloseClick = {
-                    navController.navigate(Screen.Map) {
-                        popUpTo<Screen.Map> { inclusive = true }
+                    navController.navigate(Screen.Home) {
+                        popUpTo<Screen.Home> { inclusive = true }
                     }
                 },
                 onSaveSuccess = {
-                    navController.navigate(Screen.ItineraryDetail)
+                    navController.navigate(Screen.Home) {
+                        popUpTo<Screen.Home> { inclusive = true }
+                    }
                 },
             )
         }
