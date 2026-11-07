@@ -26,14 +26,15 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun Header() {
     Box(
-        modifier = Modifier
+        modifier =
+            Modifier
 //            .fillMaxWidth()
-            .height(150.dp)
-            .background(
-                color = MaterialTheme.colorScheme.secondary,
-                shape = CurvedBottomShape()
-            ),
-//        contentAlignment = Alignment.Center
+                .height(150.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.secondary,
+                    shape = CurvedBottomShape(),
+                ),
+        //        contentAlignment = Alignment.Center
     ) {
         var searchQuery by remember { mutableStateOf("") }
 
@@ -45,24 +46,25 @@ fun Header() {
                     text = "Où voulez-vous découvrir la gastronomie locale ?",
                     style = MaterialTheme.typography.bodySmall,
                     fontStyle = FontStyle.Italic,
-                    color = Color.Gray
-
+                    color = Color.Gray,
                 )
             },
             trailingIcon = { Icon(Icons.Filled.Search, contentDescription = "Rechercher", tint = MaterialTheme.colorScheme.onBackground) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 32.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 32.dp),
             shape = RoundedCornerShape(50),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                unfocusedTextColor = MaterialTheme.colorScheme.onBackground
-            ),
-            singleLine = true
+            colors =
+                TextFieldDefaults.colors(
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                ),
+            singleLine = true,
         )
     }
 }
