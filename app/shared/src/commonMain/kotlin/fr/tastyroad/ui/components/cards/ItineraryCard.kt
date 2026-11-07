@@ -52,6 +52,7 @@ fun ItineraryCard(
                 model = item.imageUrl,
                 contentDescription = itinerary.title,
                 contentScale = ContentScale.Crop,
+                alpha = 0.85f,
                 modifier = Modifier.fillMaxSize()
             )
 
