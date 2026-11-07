@@ -7,11 +7,11 @@ data class MapClusterData(
     val name: String,
     val count: Int,
     val latitude: Double,
-    val longitude: Double
+    val longitude: Double,
 )
 
 @Composable
 expect fun InteractiveMapView(
     clusters: List<MapClusterData>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 )
