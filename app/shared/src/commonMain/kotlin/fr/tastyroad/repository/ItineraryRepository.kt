@@ -20,7 +20,7 @@ class ItineraryRepository {
 
     suspend fun getItineraries(): List<Itinerary> {
         // Déballage de la FeatureCollection
-        val response: GeoJsonFeatureCollection<Itinerary> = client.get("/itineraries/").body()
+        val response: GeoJsonFeatureCollection<Itinerary> = client.get("itineraries/").body()
         return response.features.map { it.properties }
     }
 
