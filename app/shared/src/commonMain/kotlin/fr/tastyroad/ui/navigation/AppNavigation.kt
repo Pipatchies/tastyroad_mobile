@@ -1,5 +1,6 @@
 package fr.tastyroad.ui.navigation
 
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -18,29 +19,29 @@ fun AppNavigation(navController: NavHostController,  modifier: Modifier = Modifi
 
         composable<Screen.Home> {
             // TODO: Remplacer par le vrai composant Home
-            androidx.compose.material3.Text("Écran d'Accueil")
+            Text("Écran d'Accueil")
         }
 
         composable<Screen.Map> {
             // TODO: Remplacer par le vrai composant Map
-            androidx.compose.material3.Text("Écran de la Carte Interactive")
+            Text("Écran de la Carte Interactive")
         }
 
         composable<Screen.CreateItinerary> {
             // TODO: Remplacer par le vrai composant de Création
-            androidx.compose.material3.Text("Écran de Création d'Itinéraire")
+            Text("Écran de Création d'Itinéraire")
         }
 
         composable<Screen.Profile> {
             // TODO: Remplacer par le vrai composant Profil
-            androidx.compose.material3.Text("Écran du Profil Utilisateur")
+            Text("Écran du Profil Utilisateur")
         }
 
         composable<Screen.ItineraryDetail> { backStackEntry ->
             val route = backStackEntry.toRoute<Screen.ItineraryDetail>()
             val itineraryId = route.itineraryId
             // TODO: Remplacer par le vrai composant Detail
-            androidx.compose.material3.Text("Écran de Détail pour l'itinéraire n° $itineraryId")
+            Text("Écran de Détail pour l'itinéraire n° $itineraryId")
         }
     }
 }
