@@ -8,6 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import fr.tastyroad.ui.screens.HomeScreen
+import fr.tastyroad.ui.screens.MapScreen
 
 @Composable
 fun AppNavigation(
@@ -40,11 +41,20 @@ fun AppNavigation(
         }
 
         composable<Screen.Map> {
-            Text("Écran de la Carte Interactive")
+            MapScreen(
+                onCloseClick = {
+                    navController.navigate(Screen.Home) {
+                        popUpTo<Screen.Home> { inclusive = true }
+                    }
+                },
+                onCreateItineraryClick = {
+                    navController.navigate(Screen.CreateItinerary)
+                },
+            )
         }
 
         composable<Screen.CreateItinerary> {
-            Text("Écran de Création d'Itinéraire")
+            Text("Écran de création d'itinéraire")
         }
 
         composable<Screen.ItineraryDetail> { backStackEntry ->

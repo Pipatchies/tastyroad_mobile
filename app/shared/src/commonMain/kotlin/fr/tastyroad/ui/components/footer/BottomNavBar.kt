@@ -60,10 +60,14 @@ fun BottomNavBar(navController: NavController) {
             NavigationBarItem(
                 selected = isSelected,
                 onClick = {
-                    navController.navigate(tab.screen) {
-                        popUpTo<Screen.Home> { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
+                    if (tab.screen == Screen.Home) {
+                        navController.popBackStack<Screen.Home>(inclusive = false)
+                    } else {
+                        navController.navigate(tab.screen) {
+                            popUpTo<Screen.Home> { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 },
                 icon = {
