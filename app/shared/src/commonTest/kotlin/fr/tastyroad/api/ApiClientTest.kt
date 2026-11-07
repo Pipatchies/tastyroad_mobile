@@ -17,6 +17,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.test.Ignore
 
 class ApiClientTest {
     @Test
@@ -96,9 +97,10 @@ class ApiClientTest {
             assertEquals("LineString", itineraryFeature.geometry?.get("type")?.toString()?.replace("\"", ""))
         }
 
+    @Ignore
     @Test
     fun testRealNetworkConnection() =
-        runTest(timeout = kotlin.time.Duration.parse("120s")) { // Autorise le test à durer jusqu'à 2 min
+        runTest(timeout = kotlin.time.Duration.parse("120s")) {
             val repo = fr.tastyroad.repository.ItineraryRepository()
 
             var success = false
