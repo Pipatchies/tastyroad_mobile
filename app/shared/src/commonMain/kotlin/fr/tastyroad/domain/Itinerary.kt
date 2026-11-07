@@ -5,7 +5,7 @@ import kotlinx.serialization.json.JsonObject
 
 @Serializable
 data class Itinerary(
-    val id: Int,
+    val id: Int? = null,
     val title: String,
     val type: String? = null,
     val zone: String? = null,
@@ -18,6 +18,6 @@ data class Itinerary(
     val path: JsonObject? = null,
     val author: Int,
     val favorites: List<Int> = emptyList(),
-    val steps: List<Step> = emptyList(),
-    val comments: List<Comment> = emptyList(),
+    val steps: GeoJsonFeatureCollection<Step>? = null,
+    val comments: List<Comment> = emptyList()
 )
