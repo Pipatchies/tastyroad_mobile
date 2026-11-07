@@ -23,7 +23,10 @@ class UserRepository {
         }.body()
     }
 
-    suspend fun updateMyProfile(token: String, updatedUser: User): User {
+    suspend fun updateMyProfile(
+        token: String,
+        updatedUser: User,
+    ): User {
         return client.put("/users/me/") {
             header("Authorization", "Bearer $token")
             contentType(ContentType.Application.Json)

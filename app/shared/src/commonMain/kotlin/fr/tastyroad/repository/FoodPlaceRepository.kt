@@ -24,7 +24,10 @@ class FoodPlaceRepository {
         return client.get("/foodplaces/$id/").body()
     }
 
-    suspend fun createFoodPlace(token: String, newFoodPlace: FoodPlace): FoodPlace {
+    suspend fun createFoodPlace(
+        token: String,
+        newFoodPlace: FoodPlace,
+    ): FoodPlace {
         return client.post("/foodplaces/") {
             header("Authorization", "Bearer $token")
             contentType(ContentType.Application.Json)
@@ -32,7 +35,11 @@ class FoodPlaceRepository {
         }.body()
     }
 
-    suspend fun updateFoodPlace(token: String, foodPlaceId: Int, updatedFoodPlace: FoodPlace): FoodPlace {
+    suspend fun updateFoodPlace(
+        token: String,
+        foodPlaceId: Int,
+        updatedFoodPlace: FoodPlace,
+    ): FoodPlace {
         return client.put("/foodplaces/$foodPlaceId/") {
             header("Authorization", "Bearer $token")
             contentType(ContentType.Application.Json)
@@ -40,7 +47,10 @@ class FoodPlaceRepository {
         }.body()
     }
 
-    suspend fun deleteFoodPlace(token: String, foodPlaceId: Int): Boolean {
+    suspend fun deleteFoodPlace(
+        token: String,
+        foodPlaceId: Int,
+    ): Boolean {
         return client.delete("/foodplaces/$foodPlaceId/") {
             header("Authorization", "Bearer $token")
         }.status.isSuccess()

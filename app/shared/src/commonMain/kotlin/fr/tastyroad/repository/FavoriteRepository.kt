@@ -21,7 +21,10 @@ class FavoriteRepository {
         }.body()
     }
 
-    suspend fun addFavorite(token: String, itineraryId: Int): Favorite {
+    suspend fun addFavorite(
+        token: String,
+        itineraryId: Int,
+    ): Favorite {
         val newFavorite = Favorite(itinerary = itineraryId)
 
         return client.post("/favorites/") {
@@ -31,8 +34,10 @@ class FavoriteRepository {
         }.body()
     }
 
-    suspend fun removeFavorite(token: String, favoriteId: Int): Boolean {
-
+    suspend fun removeFavorite(
+        token: String,
+        favoriteId: Int,
+    ): Boolean {
         return client.delete("/favorites/$favoriteId/") {
             header("Authorization", "Bearer $token")
         }.status.isSuccess()

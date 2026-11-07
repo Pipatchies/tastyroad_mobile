@@ -19,5 +19,5 @@ data class Itinerary(
     val author: Int,
     val favorites: List<Int> = emptyList(),
     val steps: GeoJsonFeatureCollection<Step>? = null,
-    val comments: List<Comment> = emptyList()
+    val comments: List<Comment> = emptyList(),
 )

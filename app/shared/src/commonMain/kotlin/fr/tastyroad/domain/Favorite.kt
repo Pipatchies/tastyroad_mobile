@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 data class Favorite(
     val id: Int? = null,
     val user: Int? = null,
-    val itinerary: Int
+    val itinerary: Int,
 )

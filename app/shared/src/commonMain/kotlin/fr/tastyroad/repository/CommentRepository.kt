@@ -20,7 +20,10 @@ class CommentRepository {
         return client.get("/comments/?author=$userId").body()
     }
 
-    suspend fun createComment(token: String, newComment: Comment): Comment {
+    suspend fun createComment(
+        token: String,
+        newComment: Comment,
+    ): Comment {
         return client.post("/comments/") {
             header("Authorization", "Bearer $token")
             contentType(ContentType.Application.Json)
@@ -28,7 +31,11 @@ class CommentRepository {
         }.body()
     }
 
-    suspend fun updateComment(token: String, commentId: Int, updatedComment: Comment): Comment {
+    suspend fun updateComment(
+        token: String,
+        commentId: Int,
+        updatedComment: Comment,
+    ): Comment {
         return client.put("/comments/$commentId/") {
             header("Authorization", "Bearer $token")
             contentType(ContentType.Application.Json)
@@ -36,7 +43,10 @@ class CommentRepository {
         }.body()
     }
 
-    suspend fun deleteComment(token: String, commentId: Int): Boolean {
+    suspend fun deleteComment(
+        token: String,
+        commentId: Int,
+    ): Boolean {
         return client.delete("/comments/$commentId/") {
             header("Authorization", "Bearer $token")
         }.status.isSuccess()
