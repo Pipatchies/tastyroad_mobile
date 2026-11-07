@@ -5,6 +5,7 @@ import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
@@ -29,6 +30,13 @@ class ApiClient(
                 },
             )
         }
+        
+        install(HttpTimeout) {
+            requestTimeoutMillis = 60000L
+            connectTimeoutMillis = 60000L
+            socketTimeoutMillis = 60000L
+        }
+
         defaultRequest {
             url(baseUrl)
         }
