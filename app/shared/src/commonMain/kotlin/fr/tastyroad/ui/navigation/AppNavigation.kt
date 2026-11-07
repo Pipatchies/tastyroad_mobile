@@ -5,13 +5,15 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import androidx.compose.ui.Modifier
 
 @Composable
-fun AppNavigation(navController: NavHostController) {
+fun AppNavigation(navController: NavHostController,  modifier: Modifier = Modifier) {
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Home
+        startDestination = Screen.Home,
+        modifier = modifier
     ) {
 
         composable<Screen.Home> {
