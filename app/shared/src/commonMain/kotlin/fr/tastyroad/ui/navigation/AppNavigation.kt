@@ -23,6 +23,21 @@ fun AppNavigation(
             Text("Écran d'Accueil")
         }
 
+        composable<Screen.Community> {
+            // TODO: Remplacer par le vrai composant Community
+            Text("Écran de la Communauté")
+        }
+
+        composable<Screen.Favorites> {
+            // TODO: Remplacer par le vrai composant Favoris
+            Text("Écran des Favoris")
+        }
+
+        composable<Screen.Profile> {
+            // TODO: Remplacer par le vrai composant Profil
+            Text("Écran du Profil Utilisateur")
+        }
+
         composable<Screen.Map> {
             // TODO: Remplacer par le vrai composant Map
             Text("Écran de la Carte Interactive")
@@ -31,11 +46,6 @@ fun AppNavigation(
         composable<Screen.CreateItinerary> {
             // TODO: Remplacer par le vrai composant de Création
             Text("Écran de Création d'Itinéraire")
-        }
-
-        composable<Screen.Profile> {
-            // TODO: Remplacer par le vrai composant Profil
-            Text("Écran du Profil Utilisateur")
         }
 
         composable<Screen.ItineraryDetail> { backStackEntry ->
