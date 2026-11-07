@@ -34,24 +34,27 @@ import fr.tastyroad.ui.components.map.MapClusterData
 fun MapScreen(
     onCloseClick: () -> Unit,
     onCreateItineraryClick: () -> Unit,
-    itineraries: List<ItineraryDisplayItem> = MockData.sampleItineraries
+    itineraries: List<ItineraryDisplayItem> = MockData.sampleItineraries,
 ) {
-    val countByZone = itineraries.groupBy { it.itinerary.zone ?: "" }
-        .mapValues { it.value.size }
+    val countByZone =
+        itineraries.groupBy { it.itinerary.zone ?: "" }
+            .mapValues { it.value.size }
 
-    val clusters = listOf(
-        MapClusterData("Occitanie, France", countByZone["Occitanie, France"] ?: 10, 43.6047, 1.4442),
-        MapClusterData("PACA, France", countByZone["PACA, France"] ?: 17, 43.2965, 5.3698),
-        MapClusterData("Nord, France", countByZone["Nord, France"] ?: 10, 50.6292, 3.0573),
-        MapClusterData("Ile-de-France", 12, 48.8566, 2.3522),
-        MapClusterData("Bretagne", 8, 48.1173, -1.6778),
-        MapClusterData("Auvergne-Rhône-Alpes", 15, 45.7640, 4.8357)
-    )
+    val clusters =
+        listOf(
+            MapClusterData("Occitanie, France", countByZone["Occitanie, France"] ?: 10, 43.6047, 1.4442),
+            MapClusterData("PACA, France", countByZone["PACA, France"] ?: 17, 43.2965, 5.3698),
+            MapClusterData("Nord, France", countByZone["Nord, France"] ?: 10, 50.6292, 3.0573),
+            MapClusterData("Ile-de-France", 12, 48.8566, 2.3522),
+            MapClusterData("Bretagne", 8, 48.1173, -1.6778),
+            MapClusterData("Auvergne-Rhône-Alpes", 15, 45.7640, 4.8357),
+        )
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
     ) {
         // 1. Header vert fixe
         Header()
@@ -61,17 +64,18 @@ fun MapScreen(
 
         // 3. Zone Carte Interactive OpenStreetMap
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .border(2.dp, MaterialTheme.colorScheme.secondary, RoundedCornerShape(16.dp))
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .border(2.dp, MaterialTheme.colorScheme.secondary, RoundedCornerShape(16.dp)),
         ) {
             // VRAIE CARTE INTERACTIVE (Leaflet.js + OSM Tiles + Touch Gestures)
             InteractiveMapView(
                 clusters = clusters,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
             )
 
             // BOUTON FERMER 'X' (Haut Gauche de la carte)
@@ -80,17 +84,18 @@ fun MapScreen(
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.surface,
                 border = BorderStroke(1.dp, Color.Black),
-                modifier = Modifier
-                    .padding(12.dp)
-                    .size(36.dp)
-                    .align(Alignment.TopStart)
+                modifier =
+                    Modifier
+                        .padding(12.dp)
+                        .size(36.dp)
+                        .align(Alignment.TopStart),
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = "Fermer la carte",
                         tint = Color.Black,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(20.dp),
                     )
                 }
             }
@@ -99,9 +104,10 @@ fun MapScreen(
             TastyRoadButton(
                 text = "Ajouter un itinéraire",
                 onClick = onCreateItineraryClick,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 16.dp)
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 16.dp),
             )
         }
     }

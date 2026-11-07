@@ -22,23 +22,23 @@ import fr.tastyroad.ui.components.filter.FilterSection
 import fr.tastyroad.ui.components.header.Header
 
 @Composable
-fun HomeScreen(
-    onMapClick: () -> Unit = {}
-) {
+fun HomeScreen(onMapClick: () -> Unit = {}) {
     val scrollState = rememberScrollState()
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background),
         ) {
             Header()
 
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .verticalScroll(scrollState),
             ) {
                 FilterSection()
 
@@ -46,7 +46,7 @@ fun HomeScreen(
                     text = "A LA UNE",
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
                 )
 
                 MockData.sampleItineraries.forEach { item ->
@@ -60,9 +60,10 @@ fun HomeScreen(
         TastyRoadButton(
             text = "Carte",
             onClick = onMapClick,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 16.dp)
+            modifier =
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 16.dp),
         )
     }
 }

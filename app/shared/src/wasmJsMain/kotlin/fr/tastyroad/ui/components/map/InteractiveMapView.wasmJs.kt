@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 @Composable
 actual fun InteractiveMapView(
     clusters: List<MapClusterData>,
-    modifier: Modifier
+    modifier: Modifier,
 ) {
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Text("Carte Interactive (Web Wasm)")

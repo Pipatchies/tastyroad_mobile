@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 
 enum class ButtonVariant {
     PRIMARY,
-    SECONDARY
+    SECONDARY,
 }
 
 @Composable
@@ -31,7 +31,7 @@ fun TastyRoadButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     variant: ButtonVariant = ButtonVariant.PRIMARY,
-    icon: ImageVector? = null
+    icon: ImageVector? = null,
 ) {
     val shape = RoundedCornerShape(50)
 
@@ -40,12 +40,13 @@ fun TastyRoadButton(
             Button(
                 onClick = onClick,
                 shape = shape,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ),
+                colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                    ),
                 contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp),
-                modifier = modifier
+                modifier = modifier,
             ) {
                 ButtonContent(text = text, icon = icon, contentColor = MaterialTheme.colorScheme.onPrimary)
             }
@@ -55,12 +56,13 @@ fun TastyRoadButton(
                 onClick = onClick,
                 shape = shape,
                 border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.onBackground
-                ),
+                colors =
+                    ButtonDefaults.outlinedButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.onBackground,
+                    ),
                 contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp),
-                modifier = modifier
+                modifier = modifier,
             ) {
                 ButtonContent(text = text, icon = icon, contentColor = MaterialTheme.colorScheme.onBackground)
             }
@@ -72,7 +74,7 @@ fun TastyRoadButton(
 private fun ButtonContent(
     text: String,
     icon: ImageVector?,
-    contentColor: Color
+    contentColor: Color,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (icon != null) {
@@ -80,13 +82,13 @@ private fun ButtonContent(
                 imageVector = icon,
                 contentDescription = null,
                 tint = contentColor,
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier.size(18.dp),
             )
             Spacer(modifier = Modifier.width(8.dp))
         }
         Text(
             text = text,
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleMedium,
         )
     }
 }

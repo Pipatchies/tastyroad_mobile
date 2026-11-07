@@ -11,13 +11,15 @@ import androidx.compose.ui.viewinterop.AndroidView
 @Composable
 actual fun InteractiveMapView(
     clusters: List<MapClusterData>,
-    modifier: Modifier
+    modifier: Modifier,
 ) {
-    val markersJson = clusters.joinToString(",") { cluster ->
-        "{ lat: ${cluster.latitude}, lng: ${cluster.longitude}, count: ${cluster.count}, name: '${cluster.name.replace("'", "\\'")}' }"
-    }
+    val markersJson =
+        clusters.joinToString(",") { cluster ->
+            "{ lat: ${cluster.latitude}, lng: ${cluster.longitude}, count: ${cluster.count}, name: '${cluster.name.replace("'", "\\'")}' }"
+        }
 
-    val htmlContent = """
+    val htmlContent =
+        """
         <!DOCTYPE html>
         <html>
         <head>
@@ -60,7 +62,7 @@ actual fun InteractiveMapView(
                     });
 
                     var marker = L.marker([cluster.lat, cluster.lng], { icon: customIcon }).addTo(map);
-                    
+
                     marker.on('click', function() {
                         map.setView([cluster.lat, cluster.lng], map.getZoom() + 2);
                     });
@@ -68,15 +70,16 @@ actual fun InteractiveMapView(
             </script>
         </body>
         </html>
-    """.trimIndent()
+        """.trimIndent()
 
     AndroidView(
         factory = { context ->
             WebView(context).apply {
-                layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT
-                )
+                layoutParams =
+                    ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                    )
                 webViewClient = WebViewClient()
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
@@ -84,6 +87,6 @@ actual fun InteractiveMapView(
                 loadDataWithBaseURL("https://tile.openstreetmap.org", htmlContent, "text/html", "UTF-8", null)
             }
         },
-        modifier = modifier
+        modifier = modifier,
     )
 }
