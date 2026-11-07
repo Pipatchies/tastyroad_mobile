@@ -36,7 +36,7 @@ fun FilterChipDropdown(
     Box(modifier = Modifier.wrapContentSize(Alignment.TopStart)) {
         Surface(
             onClick = { expanded = !expanded },
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(30.dp),
             color = MaterialTheme.colorScheme.background,
             border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
             modifier =

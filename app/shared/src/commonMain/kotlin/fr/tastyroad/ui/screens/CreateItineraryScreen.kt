@@ -89,7 +89,7 @@ fun CreateItineraryScreen(
     val gastronomies = listOf("Viande", "Poisson", "Fromage", "Vignoble", "Végétarien")
 
     if (!isFormExpanded) {
-        // --- PHASE 1 : MODE TRACÉ SUR CARTE (Carte Plein Écran) ---
+        // --- PHASE 1 : MODE TRACÉ SUR CARTE  ---
         Box(
             modifier =
                 Modifier
@@ -138,7 +138,7 @@ fun CreateItineraryScreen(
                         .fillMaxWidth()
                         .padding(start = 64.dp, end = 16.dp, top = 12.dp)
                         .align(Alignment.TopCenter),
-                shape = RoundedCornerShape(40.dp),
+                shape = RoundedCornerShape(16.dp),
                 colors =
                     TextFieldDefaults.colors(
                         focusedContainerColor = Color.White,
@@ -194,7 +194,7 @@ fun CreateItineraryScreen(
             }
         }
     } else {
-//        --- PHASE 2 : MODE FORMULAIRE (Formulaire) ---
+        // --- PHASE 2 : MODE FORMULAIRE ---
         Column(
             modifier =
                 Modifier
@@ -328,7 +328,7 @@ fun CreateItineraryScreen(
                             selected = isSelected,
                             onClick = { selectedType = type },
                             label = { Text(type) },
-                            shape = RoundedCornerShape(40.dp),
+                            shape = RoundedCornerShape(16.dp),
                             colors =
                                 FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = MaterialTheme.colorScheme.primary,
@@ -361,7 +361,7 @@ fun CreateItineraryScreen(
                             selected = isSelected,
                             onClick = { selectedZone = zone },
                             label = { Text(zone) },
-                            shape = RoundedCornerShape(40.dp),
+                            shape = RoundedCornerShape(16.dp),
                             colors =
                                 FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = MaterialTheme.colorScheme.primary,
@@ -394,7 +394,7 @@ fun CreateItineraryScreen(
                             selected = isSelected,
                             onClick = { selectedDifficulty = diff },
                             label = { Text(diff) },
-                            shape = RoundedCornerShape(40.dp),
+                            shape = RoundedCornerShape(16.dp),
                             colors =
                                 FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = MaterialTheme.colorScheme.primary,
@@ -427,7 +427,7 @@ fun CreateItineraryScreen(
                             selected = isSelected,
                             onClick = { selectedGastronomy = gastro },
                             label = { Text(gastro) },
-                            shape = RoundedCornerShape(40.dp),
+                            shape = RoundedCornerShape(16.dp),
                             colors =
                                 FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = MaterialTheme.colorScheme.primary,

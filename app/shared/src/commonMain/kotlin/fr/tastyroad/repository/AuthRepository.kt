@@ -26,4 +26,11 @@ class AuthRepository {
             setBody(newUser)
         }.body()
     }
+
+    suspend fun requestPasswordReset(email: String) {
+        client.post("/users/password-reset/") {
+            contentType(ContentType.Application.Json)
+            setBody(mapOf("email" to email))
+        }
+    }
 }
