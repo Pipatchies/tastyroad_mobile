@@ -10,29 +10,37 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 
 class MapCreationJSInterface(
-    private val onMetricsUpdated: (distanceKm: Double, durationMinutes: Int, stepCount: Int) -> Unit,
-) {
-    @JavascriptInterface
-    fun updateMetrics(
+    private val onMetricsUpdated: (
         distanceKm: Double,
         durationMinutes: Int,
         stepCount: Int,
+        pathGeoJson: String,
+        stepsGeoJson: String,
+    ) -> Unit,
+) {
+    @JavascriptInterface
+    fun updateMetricsAndGeometry(
+        distanceKm: Double,
+        durationMinutes: Int,
+        stepCount: Int,
+        pathGeoJson: String,
+        stepsGeoJson: String,
     ) {
-        onMetricsUpdated(distanceKm, durationMinutes, stepCount)
+        onMetricsUpdated(distanceKm, durationMinutes, stepCount, pathGeoJson, stepsGeoJson)
     }
 }
 
 @Composable
 actual fun CreationMapView(
     transportType: String,
-    onMetricsUpdated: (distanceKm: Double, durationMinutes: Int, stepCount: Int) -> Unit,
+    onMetricsUpdated: (distanceKm: Double, durationMinutes: Int, stepCount: Int, pathGeoJson: String, stepsGeoJson: String) -> Unit,
     modifier: Modifier,
 ) {
     val osrmProfile =
         when (transportType.lowercase()) {
             "vélo", "velo" -> "bike"
             "moto" -> "driving"
-            else -> "foot" // Rando / Marche par défaut
+            else -> "foot"
         }
 
     val htmlContent =
@@ -99,7 +107,7 @@ actual fun CreationMapView(
                     if (points.length < 2) {
                         polyline.setLatLngs([]);
                         if (window.AndroidBridge) {
-                            window.AndroidBridge.updateMetrics(0.0, 0, stepsCount);
+                            window.AndroidBridge.updateMetricsAndGeometry(0.0, 0, stepsCount, "{}", "{}");
                         }
                         return;
                     }
@@ -119,8 +127,41 @@ actual fun CreationMapView(
                                 var totalDistKm = route.distance / 1000.0;
                                 var durationMins = Math.round(route.duration / 60.0);
 
+                                // -- GÉNÉRATION DU GEOJSON POUR L'API DJANGO --
+
+                                // 1. Path (Ligne du tracé entier)
+                                var pathGeoJson = {
+                                    type: "LineString",
+                                    coordinates: route.geometry.coordinates // [lng, lat]
+                                };
+
+                                // 2. Steps (FeatureCollection de Points)
+                                var stepsFeatures = points.map((p, index) => {
+                                    return {
+                                        type: "Feature",
+                                        geometry: {
+                                            type: "Point",
+                                            coordinates: [p.lng, p.lat]
+                                        },
+                                        properties: {
+                                            name: (index === 0) ? "Départ" : "Étape " + index,
+                                            step_order: index
+                                        }
+                                    };
+                                });
+                                var stepsGeoJson = {
+                                    type: "FeatureCollection",
+                                    features: stepsFeatures
+                                };
+
                                 if (window.AndroidBridge) {
-                                    window.AndroidBridge.updateMetrics(totalDistKm, durationMins, stepsCount);
+                                    window.AndroidBridge.updateMetricsAndGeometry(
+                                        totalDistKm,
+                                        durationMins,
+                                        stepsCount,
+                                        JSON.stringify(pathGeoJson),
+                                        JSON.stringify(stepsGeoJson)
+                                    );
                                 }
                             }
                         })
