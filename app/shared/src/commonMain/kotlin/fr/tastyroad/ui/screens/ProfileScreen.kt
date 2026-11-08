@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -260,16 +261,20 @@ fun ProfileScreen(
                         }
                     }
                     2 -> {
-                        LazyRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentPadding = PaddingValues(horizontal = 24.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            items(MockData.sampleReviews) { review ->
-                                ReviewCard(
-                                    review = review,
-                                    modifier = Modifier.width(320.dp),
-                                )
+                        if (uiState.myReviews.isEmpty()) {
+                            Text("Vous n'avez pas encore publié d'avis.")
+                        } else {
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentPadding = PaddingValues(horizontal = 24.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            ) {
+                                items(uiState.myReviews) { review ->
+                                    ReviewCard(
+                                        review = review,
+                                        modifier = Modifier.width(320.dp),
+                                    )
+                                }
                             }
                         }
                     }
@@ -289,6 +294,7 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
+            // BOUTON NORMAL DE DÉCONNEXION (Avec effet couleur inversée au clic)
             TastyRoadButton(
                 text = "Se déconnecter",
                 onClick = {
@@ -296,25 +302,23 @@ fun ProfileScreen(
                     onLogoutClick()
                 },
                 variant = ButtonVariant.SECONDARY,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
+                modifier = Modifier.widthIn(min = 220.dp, max = 300.dp),
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            TastyRoadButton(
-                text = "Supprimer mon compte (Droit à l'oubli RGPD)",
+            // LIEN DISCRET SUPPRESSION DE COMPTE (RGPD)
+            TextButton(
                 onClick = {
                     showDeleteAccountDialog = true
                 },
-                variant = ButtonVariant.SECONDARY,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-            )
+            ) {
+                Text(
+                    text = "Supprimer mon compte (RGPD)",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
 
             Spacer(modifier = Modifier.height(40.dp))
         }

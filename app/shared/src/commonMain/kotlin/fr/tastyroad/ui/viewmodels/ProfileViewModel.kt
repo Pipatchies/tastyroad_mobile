@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.tastyroad.domain.ItineraryDisplayItem
 import fr.tastyroad.repository.AuthSession
+import fr.tastyroad.repository.CommentRepository
 import fr.tastyroad.repository.ItineraryRepository
+import fr.tastyroad.ui.components.cards.ReviewItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,11 +16,13 @@ data class ProfileUiState(
     val isLoading: Boolean = false,
     val myItineraries: List<ItineraryDisplayItem> = emptyList(),
     val myFavorites: List<ItineraryDisplayItem> = emptyList(),
+    val myReviews: List<ReviewItem> = emptyList(),
     val errorMessage: String? = null,
 )
 
 class ProfileViewModel(
     private val itineraryRepository: ItineraryRepository = ItineraryRepository(),
+    private val commentRepository: CommentRepository = CommentRepository(),
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
@@ -36,17 +40,23 @@ class ProfileViewModel(
                 val allItineraries = itineraryRepository.getItineraries()
 
                 val myApiItineraries = allItineraries.filter { it.author == currentUser.id }
-                // On récupère les itinéraires que l'utilisateur a mis en favoris (son ID est dans la liste 'favorites' de l'itinéraire)
                 val myApiFavorites =
                     allItineraries.filter { itinerary ->
                         currentUser.id != null && itinerary.favorites.contains(currentUser.id)
+                    }
+
+                val myComments =
+                    try {
+                        currentUser.id?.let { commentRepository.getCommentsByUser(it) } ?: emptyList()
+                    } catch (_: Exception) {
+                        emptyList()
                     }
 
                 val myDisplayItems =
                     myApiItineraries.map { itinerary ->
                         ItineraryDisplayItem(
                             itinerary = itinerary,
-                            rating = 0.0f,
+                            rating = 4.5f,
                             imageUrl = "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=800&auto=format&fit=crop",
                             stepsCount = itinerary.steps?.features?.size ?: 0,
                         )
@@ -56,9 +66,20 @@ class ProfileViewModel(
                     myApiFavorites.map { itinerary ->
                         ItineraryDisplayItem(
                             itinerary = itinerary,
-                            rating = 0.0f,
+                            rating = 4.5f,
                             imageUrl = "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=800&auto=format&fit=crop",
                             stepsCount = itinerary.steps?.features?.size ?: 0,
+                        )
+                    }
+
+                val reviewItems =
+                    myComments.map { comment ->
+                        ReviewItem(
+                            id = comment.id,
+                            title = "Itinéraire n° ${comment.itinerary}",
+                            rating = comment.review,
+                            comment = comment.content,
+                            imageUrl = "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?q=80&w=300&auto=format&fit=crop",
                         )
                     }
 
@@ -67,6 +88,7 @@ class ProfileViewModel(
                         isLoading = false,
                         myItineraries = myDisplayItems,
                         myFavorites = myFavoritesDisplayItems,
+                        myReviews = reviewItems,
                     )
             } catch (e: Exception) {
                 _uiState.value =
