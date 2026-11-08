@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -22,6 +23,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,11 +42,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import fr.tastyroad.domain.LoginRequest
@@ -61,17 +67,19 @@ fun AuthScreen(
     onAuthSuccess: () -> Unit,
     authRepository: AuthRepository = remember { AuthRepository() },
 ) {
-    var isLoginMode by remember { mutableStateOf(true) } // true = Connexion, false = Inscription
+    var isLoginMode by remember { mutableStateOf(true) }
     var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
     var ageText by remember { mutableStateOf("") }
 
+    var hasAcceptedGdpr by remember { mutableStateOf(false) }
+    var showPrivacyPolicyDialog by remember { mutableStateOf(false) }
+
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
 
-    // État pour le Dialog "Mot de passe oublié"
     var showForgotPasswordDialog by remember { mutableStateOf(false) }
     var resetEmailInput by remember { mutableStateOf("") }
     var resetSuccessMessage by remember { mutableStateOf<String?>(null) }
@@ -79,13 +87,17 @@ fun AuthScreen(
 
     val coroutineScope = rememberCoroutineScope()
 
-    // Validation stricte du mot de passe pour l'inscription
     fun validatePasswordSecurity(pass: String): String? {
-        if (pass.length < 8) return "Le mot de passe doit contenir au moins 8 caractères."
-        if (!pass.any { it.isUpperCase() }) return "Le mot de passe doit contenir au moins une lettre majuscule (A-Z)."
-        if (!pass.any { it.isLowerCase() }) return "Le mot de passe doit contenir au moins une lettre minuscule (a-z)."
-        if (!pass.any { it.isDigit() }) return "Le mot de passe doit contenir au moins un chiffre (0-9)."
-        if (!pass.any { !it.isLetterOrDigit() }) return "Le mot de passe doit contenir au moins un caractère spécial (!@#$%...)."
+        val isLengthValid = pass.length >= 8
+        val hasUpper = pass.any { it.isUpperCase() }
+        val hasLower = pass.any { it.isLowerCase() }
+        val hasDigit = pass.any { it.isDigit() }
+        val hasSpecial = pass.any { !it.isLetterOrDigit() }
+
+        if (!isLengthValid || !hasUpper || !hasLower || !hasDigit || !hasSpecial) {
+            return "Le mot de passe doit comporter au moins 8 caractères, " +
+                "dont au moins une majuscule, une minuscule, un chiffre et un caractère spécial (!@#$%...)"
+        }
         return null
     }
 
@@ -114,7 +126,6 @@ fun AuthScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Login vs Register
             Row(
                 modifier =
                     Modifier
@@ -144,13 +155,18 @@ fun AuthScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Username (Login and register)
             FormInputLabel("Identifiant")
             OutlinedTextField(
                 value = username,
                 onValueChange = { username = it },
                 placeholder = { Text("Votre nom d'utilisateur", color = Color.Gray, fontStyle = FontStyle.Italic) },
-                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Person,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors =
@@ -163,7 +179,6 @@ fun AuthScreen(
                 singleLine = true,
             )
 
-            // Email (register)
             if (!isLoginMode) {
                 Spacer(modifier = Modifier.height(16.dp))
                 FormInputLabel("Adresse e-mail")
@@ -171,7 +186,13 @@ fun AuthScreen(
                     value = email,
                     onValueChange = { email = it },
                     placeholder = { Text("exemple@domaine.com", color = Color.Gray, fontStyle = FontStyle.Italic) },
-                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Email,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
@@ -188,23 +209,38 @@ fun AuthScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Password (Login and register)
             FormInputLabel("Mot de passe")
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
                 placeholder = { Text("Mot de passe", color = Color.Gray, fontStyle = FontStyle.Italic) },
-                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Lock,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                },
                 trailingIcon = {
                     IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
                         Icon(
-                            imageVector = if (isPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            imageVector =
+                                if (isPasswordVisible) {
+                                    Icons.Default.VisibilityOff
+                                } else {
+                                    Icons.Default.Visibility
+                                },
                             contentDescription = "Afficher/Masquer mot de passe",
                             tint = Color.Gray,
                         )
                     }
                 },
-                visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                visualTransformation =
+                    if (isPasswordVisible) {
+                        VisualTransformation.None
+                    } else {
+                        PasswordVisualTransformation()
+                    },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -218,7 +254,6 @@ fun AuthScreen(
                 singleLine = true,
             )
 
-            // "Mot de passe oublié ?"
             if (isLoginMode) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Box(
@@ -241,7 +276,6 @@ fun AuthScreen(
                 }
             }
 
-            // Age (register)
             if (!isLoginMode) {
                 Spacer(modifier = Modifier.height(16.dp))
                 FormInputLabel("Âge")
@@ -261,9 +295,43 @@ fun AuthScreen(
                         ),
                     singleLine = true,
                 )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Checkbox(
+                        checked = hasAcceptedGdpr,
+                        onCheckedChange = { hasAcceptedGdpr = it },
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text =
+                            buildAnnotatedString {
+                                append("J'accepte la ")
+                                withStyle(
+                                    style =
+                                        SpanStyle(
+                                            color = MaterialTheme.colorScheme.primary,
+                                            textDecoration = TextDecoration.Underline,
+                                            fontWeight = FontWeight.Bold,
+                                        ),
+                                ) {
+                                    append("politique de confidentialité")
+                                }
+                                append(" et le traitement de mes données personnelles (RGPD).")
+                            },
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier =
+                            Modifier.clickable {
+                                showPrivacyPolicyDialog = true
+                            },
+                    )
+                }
             }
 
-            // Error
             if (errorMessage != null) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Surface(
@@ -282,7 +350,6 @@ fun AuthScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            // Validation button
             if (isLoading) {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             } else {
@@ -295,6 +362,12 @@ fun AuthScreen(
                         }
 
                         if (!isLoginMode) {
+                            if (!hasAcceptedGdpr) {
+                                errorMessage =
+                                    "Vous devez accepter la politique de confidentialité (RGPD) pour créer un compte."
+                                return@TastyRoadButton
+                            }
+
                             if (email.isBlank() || !email.contains("@") || !email.contains(".")) {
                                 errorMessage = "Format d'e-mail incorrect."
                                 return@TastyRoadButton
@@ -313,7 +386,6 @@ fun AuthScreen(
                         coroutineScope.launch {
                             try {
                                 if (isLoginMode) {
-                                    // Connexion
                                     val tokenResp =
                                         authRepository.login(
                                             LoginRequest(username = username, password = password),
@@ -328,7 +400,6 @@ fun AuthScreen(
                                     isLoading = false
                                     onAuthSuccess()
                                 } else {
-                                    // Inscription
                                     val createdUser =
                                         authRepository.register(
                                             User(
@@ -343,11 +414,24 @@ fun AuthScreen(
                                 }
                             } catch (e: Exception) {
                                 isLoading = false
+                                val msg = e.message?.lowercase() ?: ""
                                 errorMessage =
-                                    if (isLoginMode) {
-                                        "E-mail/Identifiant ou mot de passe incorrect."
-                                    } else {
-                                        "Cet identifiant ou cette adresse e-mail est déjà utilisé."
+                                    when {
+                                        msg.contains("connect") ||
+                                            msg.contains("timeout") ||
+                                            msg.contains("host") ||
+                                            msg.contains("500") ||
+                                            msg.contains("502") ||
+                                            msg.contains("503")
+                                        -> {
+                                            "Erreur serveur : le serveur est momentanément indisponible. Veuillez réessayer ultérieurement."
+                                        }
+                                        isLoginMode -> {
+                                            "E-mail/Identifiant ou mot de passe incorrect."
+                                        }
+                                        else -> {
+                                            "Cet identifiant ou cette adresse e-mail est déjà utilisé."
+                                        }
                                     }
                             }
                         }
@@ -358,7 +442,6 @@ fun AuthScreen(
         }
     }
 
-    // Forgott password dialog
     if (showForgotPasswordDialog) {
         AlertDialog(
             onDismissRequest = { showForgotPasswordDialog = false },
@@ -417,10 +500,21 @@ fun AuthScreen(
                             try {
                                 authRepository.requestPasswordReset(resetEmailInput)
                                 resetErrorMessage = null
-                                resetSuccessMessage = "Un e-mail de réinitialisation a été envoyé à $resetEmailInput."
-                            } catch (_: Exception) {
+                                resetSuccessMessage =
+                                    "Un e-mail de réinitialisation a été envoyé à $resetEmailInput."
+                            } catch (e: Exception) {
                                 resetSuccessMessage = null
-                                resetErrorMessage = "Adresse e-mail inconnue ou incorrecte."
+                                val msg = e.message?.lowercase() ?: ""
+                                resetErrorMessage =
+                                    if (msg.contains("connect") ||
+                                        msg.contains("timeout") ||
+                                        msg.contains("500") ||
+                                        msg.contains("host")
+                                    ) {
+                                        "Erreur serveur : le serveur est momentanément indisponible."
+                                    } else {
+                                        "Adresse e-mail inconnue ou incorrecte."
+                                    }
                             }
                         }
                     },
@@ -431,6 +525,45 @@ fun AuthScreen(
             dismissButton = {
                 TextButton(onClick = { showForgotPasswordDialog = false }) {
                     Text("Fermer", color = Color.Gray)
+                }
+            },
+        )
+    }
+
+    if (showPrivacyPolicyDialog) {
+        AlertDialog(
+            onDismissRequest = { showPrivacyPolicyDialog = false },
+            title = {
+                Text(
+                    text = "Politique de Confidentialité (RGPD)",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+            },
+            text = {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    Text("1. Données collectées :", fontWeight = FontWeight.Bold)
+                    Text(
+                        "Nous collectons uniquement votre nom d'utilisateur, adresse e-mail, âge " +
+                            "et les coordonnées GPS des itinéraires et étapes que vous créez.",
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("2. Finalités du traitement :", fontWeight = FontWeight.Bold)
+                    Text(
+                        "Ces données sont utilisées exclusivement pour vous fournir le service " +
+                            "de cartographie culinaire TastyRoad et vous permettre de partager vos trajets.",
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("3. Droit à l'oubli (Suppression) :", fontWeight = FontWeight.Bold)
+                    Text(
+                        "Conformément au RGPD, vous disposez d'un droit permanent de suppression " +
+                            "définitive de votre compte et de toutes vos données depuis votre écran Profil.",
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showPrivacyPolicyDialog = false }) {
+                    Text("Compris", color = MaterialTheme.colorScheme.primary)
                 }
             },
         )
