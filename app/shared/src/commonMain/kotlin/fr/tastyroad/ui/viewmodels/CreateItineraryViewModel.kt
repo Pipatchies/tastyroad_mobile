@@ -2,10 +2,12 @@ package fr.tastyroad.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import fr.tastyroad.domain.FoodPlace
 import fr.tastyroad.domain.GeoJsonFeatureCollection
 import fr.tastyroad.domain.Itinerary
 import fr.tastyroad.domain.Step
 import fr.tastyroad.repository.AuthSession
+import fr.tastyroad.repository.FoodPlaceRepository
 import fr.tastyroad.repository.ItineraryRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,16 +19,33 @@ import kotlinx.serialization.json.JsonObject
 data class CreateItineraryUiState(
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
+    val foodPlaces: List<FoodPlace> = emptyList(),
     val errorMessage: String? = null,
 )
 
 class CreateItineraryViewModel(
     private val itineraryRepository: ItineraryRepository = ItineraryRepository(),
+    private val foodPlaceRepository: FoodPlaceRepository = FoodPlaceRepository(),
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(CreateItineraryUiState())
     val uiState: StateFlow<CreateItineraryUiState> = _uiState.asStateFlow()
 
     private val json = Json { ignoreUnknownKeys = true }
+
+    init {
+        fetchFoodPlaces()
+    }
+
+    private fun fetchFoodPlaces() {
+        viewModelScope.launch {
+            try {
+                val places = foodPlaceRepository.getFoodPlaces()
+                _uiState.value = _uiState.value.copy(foodPlaces = places)
+            } catch (_: Exception) {
+                // Ignore failure on foodplaces fetch for offline/mock fallback
+            }
+        }
+    }
 
     fun createItinerary(
         title: String,
