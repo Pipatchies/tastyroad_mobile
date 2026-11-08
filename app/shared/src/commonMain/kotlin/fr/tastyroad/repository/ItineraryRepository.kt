@@ -3,6 +3,8 @@ package fr.tastyroad.repository
 import fr.tastyroad.domain.GeoJsonFeature
 import fr.tastyroad.domain.GeoJsonFeatureCollection
 import fr.tastyroad.domain.Itinerary
+import fr.tastyroad.domain.RawItinerariesResponse
+import fr.tastyroad.domain.TopItineraryDTO
 import fr.tastyroad.network.AppClient
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
@@ -19,13 +21,19 @@ class ItineraryRepository {
     private val client = AppClient.instance
 
     suspend fun getItineraries(): List<Itinerary> {
-        // Déballage de la FeatureCollection
         val response: GeoJsonFeatureCollection<Itinerary> = client.get("itineraries/").body()
         return response.features.map { it.properties }
     }
 
+    suspend fun getTopItineraries(limit: Int = 5): List<TopItineraryDTO> {
+        val response: RawItinerariesResponse =
+            client.get("raw/itineraries/") {
+                url { parameters.append("limit", limit.toString()) }
+            }.body()
+        return response.data
+    }
+
     suspend fun getItineraryById(id: Int): Itinerary {
-        // Déballage d'une Feature unique
         val response: GeoJsonFeature<Itinerary> = client.get("/itineraries/$id/").body()
         return response.properties
     }
@@ -38,7 +46,6 @@ class ItineraryRepository {
             client.post("/itineraries/") {
                 header("Authorization", "Bearer $token")
                 contentType(ContentType.Application.Json)
-                // On envoie un itinéraire pur, Django le comprendra
                 setBody(newItinerary)
             }.body()
         return response.properties
