@@ -7,7 +7,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import fr.tastyroad.repository.AuthSession
+import fr.tastyroad.session.AuthSession
 import fr.tastyroad.ui.screens.AuthScreen
 import fr.tastyroad.ui.screens.CreateItineraryScreen
 import fr.tastyroad.ui.screens.HomeScreen
