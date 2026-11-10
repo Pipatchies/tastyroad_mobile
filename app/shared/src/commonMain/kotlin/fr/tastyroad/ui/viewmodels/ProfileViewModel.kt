@@ -3,9 +3,9 @@ package fr.tastyroad.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.tastyroad.domain.ItineraryDisplayItem
-import fr.tastyroad.repository.AuthSession
 import fr.tastyroad.repository.CommentRepository
 import fr.tastyroad.repository.ItineraryRepository
+import fr.tastyroad.session.AuthSession
 import fr.tastyroad.ui.components.cards.ReviewItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,10 +32,23 @@ class ProfileViewModel(
     }
 
     fun fetchMyData() {
-        val currentUser = AuthSession.currentUser ?: return
-
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+            
+            // 1. On s'assure d'avoir chargé les infos de l'utilisateur avec son ID
+            if (AuthSession.currentUser == null) {
+                AuthSession.fetchCurrentUserProfile(fr.tastyroad.repository.AuthRepository())
+            }
+
+            val currentUser = AuthSession.currentUser
+            if (currentUser == null) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false, 
+                    errorMessage = "Impossible de récupérer votre profil."
+                )
+                return@launch
+            }
+
             try {
                 val allItineraries = itineraryRepository.getItineraries()
 

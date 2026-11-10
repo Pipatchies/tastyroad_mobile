@@ -21,7 +21,7 @@ class StepRepository {
         newStep: Step,
     ): Step {
         val response: GeoJsonFeature<Step> =
-            client.post("/steps/") {
+            client.post("steps/") {
                 header("Authorization", "Bearer $token")
                 contentType(ContentType.Application.Json)
                 setBody(newStep)
@@ -35,7 +35,7 @@ class StepRepository {
         updatedStep: Step,
     ): Step {
         val response: GeoJsonFeature<Step> =
-            client.put("/steps/$stepId/") {
+            client.put("steps/$stepId/") {
                 header("Authorization", "Bearer $token")
                 contentType(ContentType.Application.Json)
                 setBody(updatedStep)
@@ -47,7 +47,7 @@ class StepRepository {
         token: String,
         stepId: Int,
     ): Boolean {
-        return client.delete("/steps/$stepId/") {
+        return client.delete("steps/$stepId/") {
             header("Authorization", "Bearer $token")
         }.status.isSuccess()
     }

@@ -59,12 +59,15 @@ class HomeViewModel(
                         itineraries = displayItems,
                     )
             } catch (e: Exception) {
-                val msg = e.message?.lowercase() ?: ""
+                val msg = e.message?.lowercase() ?: e.toString().lowercase()
                 val error =
-                    if (msg.contains("connect") || msg.contains("host") || msg.contains("timeout")) {
-                        "Impossible de joindre le serveur. Vérifiez votre connexion ou l'état du serveur."
-                    } else {
-                        "Une erreur est survenue lors de la récupération des itinéraires à la une."
+                    when {
+                        msg.contains("unresolved") || msg.contains("unknownhost") ->
+                            "Erreur réseau. Vérifiez votre connexion Internet."
+                        msg.contains("connect") || msg.contains("host") || msg.contains("timeout") ->
+                            "Impossible de joindre le serveur."
+                        else ->
+                            "Une erreur est survenue lors de la récupération des itinéraires à la une."
                     }
 
                 _uiState.value =

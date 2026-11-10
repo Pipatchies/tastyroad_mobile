@@ -6,9 +6,9 @@ import fr.tastyroad.domain.FoodPlace
 import fr.tastyroad.domain.GeoJsonFeatureCollection
 import fr.tastyroad.domain.Itinerary
 import fr.tastyroad.domain.Step
-import fr.tastyroad.repository.AuthSession
 import fr.tastyroad.repository.FoodPlaceRepository
 import fr.tastyroad.repository.ItineraryRepository
+import fr.tastyroad.session.AuthSession
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,7 +42,6 @@ class CreateItineraryViewModel(
                 val places = foodPlaceRepository.getFoodPlaces()
                 _uiState.value = _uiState.value.copy(foodPlaces = places)
             } catch (_: Exception) {
-                // Ignore failure on foodplaces fetch for offline/mock fallback
             }
         }
     }
@@ -60,9 +59,8 @@ class CreateItineraryViewModel(
         stepsGeoJson: String,
     ) {
         val token = AuthSession.token
-        val authorId = AuthSession.currentUser?.id
 
-        if (token == null || authorId == null) {
+        if (token == null) {
             _uiState.value = _uiState.value.copy(errorMessage = "Vous devez être connecté pour créer un itinéraire.")
             return
         }
@@ -96,7 +94,6 @@ class CreateItineraryViewModel(
                         facts = description,
                         distance = distanceKm,
                         duration = durationFormatted,
-                        author = authorId,
                         path = pathObject,
                         steps = stepsCollection,
                     )
@@ -109,6 +106,7 @@ class CreateItineraryViewModel(
                         isSuccess = true,
                     )
             } catch (e: Exception) {
+                e.printStackTrace()
                 val msg = e.message?.lowercase() ?: ""
                 val error =
                     if (msg.contains("connect") || msg.contains("timeout") || msg.contains("host") || msg.contains("500")) {

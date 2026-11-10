@@ -34,7 +34,7 @@ class ItineraryRepository {
     }
 
     suspend fun getItineraryById(id: Int): Itinerary {
-        val response: GeoJsonFeature<Itinerary> = client.get("/itineraries/$id/").body()
+        val response: GeoJsonFeature<Itinerary> = client.get("itineraries/$id/").body()
         return response.properties
     }
 
@@ -43,7 +43,7 @@ class ItineraryRepository {
         newItinerary: Itinerary,
     ): Itinerary {
         val response: GeoJsonFeature<Itinerary> =
-            client.post("/itineraries/") {
+            client.post("itineraries/") {
                 header("Authorization", "Bearer $token")
                 contentType(ContentType.Application.Json)
                 setBody(newItinerary)
@@ -57,7 +57,7 @@ class ItineraryRepository {
         updatedItinerary: Itinerary,
     ): Itinerary {
         val response: GeoJsonFeature<Itinerary> =
-            client.put("/itineraries/$itineraryId/") {
+            client.put("itineraries/$itineraryId/") {
                 header("Authorization", "Bearer $token")
                 contentType(ContentType.Application.Json)
                 setBody(updatedItinerary)
@@ -70,7 +70,7 @@ class ItineraryRepository {
         itineraryId: Int,
     ): Boolean {
         val response =
-            client.delete("/itineraries/$itineraryId/") {
+            client.delete("itineraries/$itineraryId/") {
                 header("Authorization", "Bearer $token")
             }
         return response.status.isSuccess()

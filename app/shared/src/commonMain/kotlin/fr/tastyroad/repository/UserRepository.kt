@@ -15,11 +15,11 @@ class UserRepository {
     private val client = AppClient.instance
 
     suspend fun getUserProfile(userId: Int): User {
-        return client.get("/users/$userId/").body()
+        return client.get("users/$userId/").body()
     }
 
     suspend fun getMyProfile(token: String): User {
-        return client.get("/users/me/") {
+        return client.get("users/me/") {
             header("Authorization", "Bearer $token")
         }.body()
     }
@@ -28,7 +28,7 @@ class UserRepository {
         token: String,
         updatedUser: User,
     ): User {
-        return client.put("/users/me/") {
+        return client.put("users/me/") {
             header("Authorization", "Bearer $token")
             contentType(ContentType.Application.Json)
             setBody(updatedUser)
@@ -36,7 +36,7 @@ class UserRepository {
     }
 
     suspend fun deleteMyAccount(token: String) {
-        client.delete("/users/me/") {
+        client.delete("users/me/") {
             header("Authorization", "Bearer $token")
         }
     }

@@ -46,8 +46,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import fr.tastyroad.domain.MockData
-import fr.tastyroad.repository.AuthSession
 import fr.tastyroad.repository.UserRepository
+import fr.tastyroad.session.AuthSession
 import fr.tastyroad.ui.components.buttons.ButtonVariant
 import fr.tastyroad.ui.components.buttons.TastyRoadButton
 import fr.tastyroad.ui.components.cards.ItineraryCard
