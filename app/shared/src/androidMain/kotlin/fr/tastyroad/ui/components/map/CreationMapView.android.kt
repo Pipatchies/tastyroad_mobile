@@ -101,6 +101,13 @@ actual fun CreationMapView(
                 var polyline = L.polyline([], { color: '#E44821', weight: 5, opacity: 0.9 }).addTo(map);
                 var profile = "$osrmProfile";
 
+                function updateProfile(newProfile) {
+                    if (profile !== newProfile) {
+                        profile = newProfile;
+                        calculateRoute();
+                    }
+                }
+
                 function calculateRoute() {
                     var stepsCount = points.length > 0 ? points.length - 1 : 0;
 
@@ -214,6 +221,15 @@ actual fun CreationMapView(
                 )
                 loadDataWithBaseURL("https://tile.openstreetmap.org", htmlContent, "text/html", "UTF-8", null)
             }
+        },
+        update = { webView ->
+            val updatedOsrmProfile =
+                when (transportType.lowercase()) {
+                    "vélo", "velo" -> "bike"
+                    "moto" -> "driving"
+                    else -> "foot"
+                }
+            webView.evaluateJavascript("if (typeof updateProfile === 'function') { updateProfile('$updatedOsrmProfile'); }", null)
         },
         modifier = modifier,
     )
