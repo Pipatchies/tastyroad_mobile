@@ -20,6 +20,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -30,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -44,17 +46,22 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.tastyroad.ui.components.buttons.ButtonVariant
 import fr.tastyroad.ui.components.buttons.TastyRoadButton
 import fr.tastyroad.ui.components.map.CreationMapView
 import fr.tastyroad.ui.components.metrics.MetricsBox
+import fr.tastyroad.ui.viewmodels.CreateItineraryViewModel
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CreateItineraryScreen(
     onCloseClick: () -> Unit,
     onSaveSuccess: () -> Unit,
+    viewModel: CreateItineraryViewModel = viewModel { CreateItineraryViewModel() },
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+
     var isFormExpanded by remember { mutableStateOf(false) }
     var showStepError by remember { mutableStateOf(false) }
     var showFormErrors by remember { mutableStateOf(false) }
@@ -70,6 +77,8 @@ fun CreateItineraryScreen(
     var distanceKm by remember { mutableDoubleStateOf(0.0) }
     var durationMinutes by remember { mutableIntStateOf(0) }
     var stepCount by remember { mutableIntStateOf(0) }
+    var pathGeoJson by remember { mutableStateOf("{}") }
+    var stepsGeoJson by remember { mutableStateOf("{}") }
 
     val isStepsValid = stepCount >= 2
     val isTitleValid = title.isNotBlank()
@@ -88,8 +97,12 @@ fun CreateItineraryScreen(
     val difficulties = listOf("Facile", "Moyen", "Difficile")
     val gastronomies = listOf("Viande", "Poisson", "Fromage", "Vignoble", "Végétarien")
 
+    if (uiState.isSuccess) {
+        onSaveSuccess()
+    }
+
     if (!isFormExpanded) {
-        // --- PHASE 1 : MODE TRACÉ SUR CARTE  ---
+        // --- PHASE 1 : MODE TRACÉ SUR CARTE ---
         Box(
             modifier =
                 Modifier
@@ -98,10 +111,12 @@ fun CreateItineraryScreen(
         ) {
             CreationMapView(
                 transportType = selectedType,
-                onMetricsUpdated = { dist, dur, steps ->
+                onMetricsUpdated = { dist, dur, steps, path, stepsJson ->
                     distanceKm = dist
                     durationMinutes = dur
                     stepCount = steps
+                    pathGeoJson = path
+                    stepsGeoJson = stepsJson
                     if (steps >= 2) showStepError = false
                 },
                 modifier = Modifier.fillMaxSize(),
@@ -138,7 +153,7 @@ fun CreateItineraryScreen(
                         .fillMaxWidth()
                         .padding(start = 64.dp, end = 16.dp, top = 12.dp)
                         .align(Alignment.TopCenter),
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(30.dp),
                 colors =
                     TextFieldDefaults.colors(
                         focusedContainerColor = Color.White,
@@ -210,10 +225,12 @@ fun CreateItineraryScreen(
             ) {
                 CreationMapView(
                     transportType = selectedType,
-                    onMetricsUpdated = { dist, dur, steps ->
+                    onMetricsUpdated = { dist, dur, steps, path, stepsJson ->
                         distanceKm = dist
                         durationMinutes = dur
                         stepCount = steps
+                        pathGeoJson = path
+                        stepsGeoJson = stepsJson
                     },
                     modifier = Modifier.fillMaxSize(),
                 )
@@ -485,18 +502,49 @@ fun CreateItineraryScreen(
                     )
                 }
 
+                if (uiState.errorMessage != null) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Surface(
+                        color = MaterialTheme.colorScheme.errorContainer,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(
+                            text = uiState.errorMessage ?: "",
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(12.dp),
+                        )
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(28.dp))
 
-                TastyRoadButton(
-                    text = "Enregistrer l'itinéraire",
-                    onClick = {
-                        showFormErrors = true
-                        if (isFormValid) {
-                            onSaveSuccess()
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                } else {
+                    TastyRoadButton(
+                        text = "Enregistrer l'itinéraire",
+                        onClick = {
+                            showFormErrors = true
+                            if (isFormValid) {
+                                viewModel.createItinerary(
+                                    title = title,
+                                    type = selectedType,
+                                    zone = selectedZone,
+                                    difficulty = selectedDifficulty,
+                                    gastronomy = selectedGastronomy,
+                                    description = description,
+                                    distanceKm = distanceKm,
+                                    durationMinutes = durationMinutes,
+                                    pathGeoJson = pathGeoJson,
+                                    stepsGeoJson = stepsGeoJson,
+                                )
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(40.dp))
             }

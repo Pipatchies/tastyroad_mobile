@@ -17,18 +17,18 @@ class FoodPlaceRepository {
     private val client = AppClient.instance
 
     suspend fun getFoodPlaces(): List<FoodPlace> {
-        return client.get("/foodplaces/").body()
+        return client.get("foodplaces/").body()
     }
 
     suspend fun getFoodPlaceById(id: Int): FoodPlace {
-        return client.get("/foodplaces/$id/").body()
+        return client.get("foodplaces/$id/").body()
     }
 
     suspend fun createFoodPlace(
         token: String,
         newFoodPlace: FoodPlace,
     ): FoodPlace {
-        return client.post("/foodplaces/") {
+        return client.post("foodplaces/") {
             header("Authorization", "Bearer $token")
             contentType(ContentType.Application.Json)
             setBody(newFoodPlace)
@@ -40,7 +40,7 @@ class FoodPlaceRepository {
         foodPlaceId: Int,
         updatedFoodPlace: FoodPlace,
     ): FoodPlace {
-        return client.put("/foodplaces/$foodPlaceId/") {
+        return client.put("foodplaces/$foodPlaceId/") {
             header("Authorization", "Bearer $token")
             contentType(ContentType.Application.Json)
             setBody(updatedFoodPlace)
@@ -51,7 +51,7 @@ class FoodPlaceRepository {
         token: String,
         foodPlaceId: Int,
     ): Boolean {
-        return client.delete("/foodplaces/$foodPlaceId/") {
+        return client.delete("foodplaces/$foodPlaceId/") {
             header("Authorization", "Bearer $token")
         }.status.isSuccess()
     }

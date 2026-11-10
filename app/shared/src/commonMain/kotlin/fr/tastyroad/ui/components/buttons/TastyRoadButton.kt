@@ -1,6 +1,8 @@
 package fr.tastyroad.ui.components.buttons
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +16,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,37 +38,48 @@ fun TastyRoadButton(
     icon: ImageVector? = null,
 ) {
     val shape = RoundedCornerShape(16.dp)
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
 
     when (variant) {
         ButtonVariant.PRIMARY -> {
+            val containerCol = if (isPressed) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
+            val contentCol = if (isPressed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimary
+
             Button(
                 onClick = onClick,
                 shape = shape,
+                interactionSource = interactionSource,
                 colors =
                     ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        containerColor = containerCol,
+                        contentColor = contentCol,
                     ),
+                border = if (isPressed) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
                 contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp),
                 modifier = modifier,
             ) {
-                ButtonContent(text = text, icon = icon, contentColor = MaterialTheme.colorScheme.onPrimary)
+                ButtonContent(text = text, icon = icon, contentColor = contentCol)
             }
         }
         ButtonVariant.SECONDARY -> {
+            val containerCol = if (isPressed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
+            val contentCol = if (isPressed) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground
+
             OutlinedButton(
                 onClick = onClick,
                 shape = shape,
+                interactionSource = interactionSource,
                 border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
                 colors =
                     ButtonDefaults.outlinedButtonColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        contentColor = MaterialTheme.colorScheme.onBackground,
+                        containerColor = containerCol,
+                        contentColor = contentCol,
                     ),
                 contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp),
                 modifier = modifier,
             ) {
-                ButtonContent(text = text, icon = icon, contentColor = MaterialTheme.colorScheme.onBackground)
+                ButtonContent(text = text, icon = icon, contentColor = contentCol)
             }
         }
     }

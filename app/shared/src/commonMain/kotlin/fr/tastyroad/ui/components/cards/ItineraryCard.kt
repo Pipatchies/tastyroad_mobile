@@ -149,7 +149,25 @@ fun ItineraryCard(
                         horizontalArrangement = Arrangement.SpaceEvenly,
                     ) {
                         StatItem(value = "${itinerary.distance?.toInt() ?: 0}", label = "km")
-                        StatItem(value = itinerary.duration ?: "0", label = "durée")
+
+                        val durationStr = itinerary.duration ?: "00:00:00"
+                        val formattedDuration =
+                            if (durationStr.contains("H") || durationStr.contains("M")) {
+                                val hoursMatch = Regex("""(\d+)H""").find(durationStr)
+                                val minsMatch = Regex("""(\d+)M""").find(durationStr)
+                                val hours = hoursMatch?.groupValues?.get(1)?.toIntOrNull() ?: 0
+                                val mins = minsMatch?.groupValues?.get(1)?.toIntOrNull() ?: 0
+                                "${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}"
+                            } else {
+                                val parts = durationStr.split(":")
+                                if (parts.size >= 2) {
+                                    "${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}"
+                                } else {
+                                    "00:00"
+                                }
+                            }
+
+                        StatItem(value = formattedDuration, label = "durée")
                         StatItem(value = "${item.stepsCount}", label = "étapes")
                     }
                 }

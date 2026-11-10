@@ -17,14 +17,14 @@ class CommentRepository {
     private val client = AppClient.instance
 
     suspend fun getCommentsByUser(userId: Int): List<Comment> {
-        return client.get("/comments/?author=$userId").body()
+        return client.get("comments/?author=$userId").body()
     }
 
     suspend fun createComment(
         token: String,
         newComment: Comment,
     ): Comment {
-        return client.post("/comments/") {
+        return client.post("comments/") {
             header("Authorization", "Bearer $token")
             contentType(ContentType.Application.Json)
             setBody(newComment)
@@ -36,7 +36,7 @@ class CommentRepository {
         commentId: Int,
         updatedComment: Comment,
     ): Comment {
-        return client.put("/comments/$commentId/") {
+        return client.put("comments/$commentId/") {
             header("Authorization", "Bearer $token")
             contentType(ContentType.Application.Json)
             setBody(updatedComment)
@@ -47,7 +47,7 @@ class CommentRepository {
         token: String,
         commentId: Int,
     ): Boolean {
-        return client.delete("/comments/$commentId/") {
+        return client.delete("comments/$commentId/") {
             header("Authorization", "Bearer $token")
         }.status.isSuccess()
     }

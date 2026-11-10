@@ -16,7 +16,7 @@ class FavoriteRepository {
     private val client = AppClient.instance
 
     suspend fun getMyFavorites(token: String): List<Favorite> {
-        return client.get("/favorites/") {
+        return client.get("favorites/") {
             header("Authorization", "Bearer $token")
         }.body()
     }
@@ -27,7 +27,7 @@ class FavoriteRepository {
     ): Favorite {
         val newFavorite = Favorite(itinerary = itineraryId)
 
-        return client.post("/favorites/") {
+        return client.post("favorites/") {
             header("Authorization", "Bearer $token")
             contentType(ContentType.Application.Json)
             setBody(newFavorite)
@@ -38,7 +38,7 @@ class FavoriteRepository {
         token: String,
         favoriteId: Int,
     ): Boolean {
-        return client.delete("/favorites/$favoriteId/") {
+        return client.delete("favorites/$favoriteId/") {
             header("Authorization", "Bearer $token")
         }.status.isSuccess()
     }

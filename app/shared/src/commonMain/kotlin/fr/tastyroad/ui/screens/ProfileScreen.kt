@@ -14,18 +14,21 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -40,10 +43,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import fr.tastyroad.domain.MockData
-import fr.tastyroad.repository.AuthSession
 import fr.tastyroad.repository.UserRepository
+import fr.tastyroad.session.AuthSession
 import fr.tastyroad.ui.components.buttons.ButtonVariant
 import fr.tastyroad.ui.components.buttons.TastyRoadButton
 import fr.tastyroad.ui.components.cards.ItineraryCard
@@ -52,9 +56,10 @@ import fr.tastyroad.ui.components.cards.ReviewCard
 import fr.tastyroad.ui.components.header.Header
 import fr.tastyroad.ui.components.metrics.MetricsBox
 import fr.tastyroad.ui.theme.TastyRoadTheme
+import fr.tastyroad.ui.viewmodels.ProfileViewModel
 import kotlinx.coroutines.launch
 
-private const val DEFAULT_AVATAR =
+private const val AVATAR =
     "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=300&auto=format&fit=crop"
 
 @Composable
@@ -63,8 +68,11 @@ fun ProfileScreen(
     onMapClick: () -> Unit = {},
     initialTabIndex: Int = 0,
     userRepository: UserRepository = remember { UserRepository() },
+    viewModel: ProfileViewModel = viewModel { ProfileViewModel() },
 ) {
     val user = AuthSession.currentUser
+    val uiState by viewModel.uiState.collectAsState()
+
     var selectedTabIndex by remember { mutableIntStateOf(initialTabIndex) }
     val tabTitles = listOf("Mes itinéraires", "Mes favoris", "Mes avis", "Mes photos")
 
@@ -110,7 +118,7 @@ fun ProfileScreen(
                     modifier = Modifier.size(80.dp),
                 ) {
                     AsyncImage(
-                        model = user?.avatar ?: DEFAULT_AVATAR,
+                        model = user?.avatar ?: AVATAR,
                         contentDescription = "Avatar",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize(),
@@ -150,12 +158,16 @@ fun ProfileScreen(
                 thickness = 1.dp,
             )
 
+            val totalItineraries = uiState.myItineraries.size
+            val totalDistance = uiState.myItineraries.mapNotNull { it.itinerary.distance }.sum()
+            val totalSteps = uiState.myItineraries.mapNotNull { it.stepsCount }.sum()
+
             MetricsBox(
-                metric1Value = "1",
+                metric1Value = "$totalItineraries",
                 metric1Label = "itinéraire",
-                metric2Value = "40",
+                metric2Value = "${totalDistance.toInt()}",
                 metric2Label = "km",
-                metric3Value = "8",
+                metric3Value = "$totalSteps",
                 metric3Label = "étapes",
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
             )
@@ -202,57 +214,79 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            when (selectedTabIndex) {
-                0 -> {
-                    LazyRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentPadding = PaddingValues(horizontal = 12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        items(MockData.sampleItineraries) { item ->
-                            ItineraryCard(
-                                item = item,
-                                modifier = Modifier.width(320.dp),
-                            )
+            if (uiState.isLoading) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            } else if (uiState.errorMessage != null) {
+                Text(
+                    text = uiState.errorMessage ?: "",
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(horizontal = 24.dp),
+                )
+            } else {
+                when (selectedTabIndex) {
+                    0 -> {
+                        if (uiState.myItineraries.isEmpty()) {
+                            Text("Vous n'avez pas encore d'itinéraires.")
+                        } else {
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentPadding = PaddingValues(horizontal = 12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                items(uiState.myItineraries) { item ->
+                                    ItineraryCard(
+                                        item = item,
+                                        modifier = Modifier.width(320.dp),
+                                    )
+                                }
+                            }
                         }
                     }
-                }
-                1 -> {
-                    LazyRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentPadding = PaddingValues(horizontal = 12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        items(MockData.sampleItineraries.reversed()) { item ->
-                            ItineraryCard(
-                                item = item,
-                                modifier = Modifier.width(320.dp),
-                            )
+                    1 -> {
+                        if (uiState.myFavorites.isEmpty()) {
+                            Text("Vous n'avez pas encore de favoris.")
+                        } else {
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentPadding = PaddingValues(horizontal = 12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                items(uiState.myFavorites) { item ->
+                                    ItineraryCard(
+                                        item = item,
+                                        modifier = Modifier.width(320.dp),
+                                    )
+                                }
+                            }
                         }
                     }
-                }
-                2 -> {
-                    LazyRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentPadding = PaddingValues(horizontal = 24.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        items(MockData.sampleReviews) { review ->
-                            ReviewCard(
-                                review = review,
-                                modifier = Modifier.width(320.dp),
-                            )
+                    2 -> {
+                        if (uiState.myReviews.isEmpty()) {
+                            Text("Vous n'avez pas encore publié d'avis.")
+                        } else {
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentPadding = PaddingValues(horizontal = 24.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            ) {
+                                items(uiState.myReviews) { review ->
+                                    ReviewCard(
+                                        review = review,
+                                        modifier = Modifier.width(320.dp),
+                                    )
+                                }
+                            }
                         }
                     }
-                }
-                3 -> {
-                    LazyRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentPadding = PaddingValues(horizontal = 24.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        items(MockData.samplePhotos) { photoUrl ->
-                            PhotoCard(imageUrl = photoUrl)
+                    3 -> {
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(horizontal = 24.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            items(MockData.samplePhotos) { photoUrl ->
+                                PhotoCard(imageUrl = photoUrl)
+                            }
                         }
                     }
                 }
@@ -260,6 +294,7 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
+            // BOUTON NORMAL DE DÉCONNEXION (Avec effet couleur inversée au clic)
             TastyRoadButton(
                 text = "Se déconnecter",
                 onClick = {
@@ -267,25 +302,23 @@ fun ProfileScreen(
                     onLogoutClick()
                 },
                 variant = ButtonVariant.SECONDARY,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
+                modifier = Modifier.widthIn(min = 220.dp, max = 300.dp),
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            TastyRoadButton(
-                text = "Supprimer mon compte (Droit à l'oubli RGPD)",
+            // LIEN DISCRET SUPPRESSION DE COMPTE (RGPD)
+            TextButton(
                 onClick = {
                     showDeleteAccountDialog = true
                 },
-                variant = ButtonVariant.SECONDARY,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-            )
+            ) {
+                Text(
+                    text = "Supprimer mon compte (RGPD)",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
 
             Spacer(modifier = Modifier.height(40.dp))
         }

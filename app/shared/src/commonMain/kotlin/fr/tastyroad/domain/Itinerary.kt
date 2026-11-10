@@ -1,5 +1,6 @@
 package fr.tastyroad.domain
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 
@@ -16,8 +17,31 @@ data class Itinerary(
     val speciality: String? = null,
     val facts: String? = null,
     val path: JsonObject? = null,
-    val author: Int,
+    val author: Int? = null,
     val favorites: List<Int> = emptyList(),
     val steps: GeoJsonFeatureCollection<Step>? = null,
     val comments: List<Comment> = emptyList(),
+)
+
+// --- CLASSE DTO POUR LA ROUTE /api/raw/itineraries/ ---
+
+@Serializable
+data class TopItineraryDTO(
+    val id: Int,
+    val title: String,
+    val type: String? = null,
+    val zone: String? = null,
+    val distance: Double? = null,
+    val duration: String? = null,
+    val difficulty: String? = null,
+    val diet: String? = null,
+    @SerialName("steps_count") val stepsCount: Int? = null,
+    val author: String,
+    @SerialName("average_rating") val averageRating: Double,
+)
+
+@Serializable
+data class RawItinerariesResponse(
+    val status: String,
+    val data: List<TopItineraryDTO>,
 )

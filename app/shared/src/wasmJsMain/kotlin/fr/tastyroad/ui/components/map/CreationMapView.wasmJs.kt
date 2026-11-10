@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 @Composable
 actual fun CreationMapView(
     transportType: String,
-    onMetricsUpdated: (distanceKm: Double, durationMinutes: Int, stepCount: Int) -> Unit,
+    onMetricsUpdated: (Double, Int, Int, String, String) -> Unit,
     modifier: Modifier,
 ) {
     Box(modifier = modifier, contentAlignment = Alignment.Center) {

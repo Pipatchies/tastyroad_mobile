@@ -34,10 +34,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,20 +53,19 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import fr.tastyroad.domain.LoginRequest
-import fr.tastyroad.domain.User
-import fr.tastyroad.repository.AuthRepository
-import fr.tastyroad.repository.AuthSession
+import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.tastyroad.ui.components.buttons.ButtonVariant
 import fr.tastyroad.ui.components.buttons.TastyRoadButton
 import fr.tastyroad.ui.theme.TastyRoadTheme
-import kotlinx.coroutines.launch
+import fr.tastyroad.ui.viewmodels.AuthViewModel
 
 @Composable
 fun AuthScreen(
     onAuthSuccess: () -> Unit,
-    authRepository: AuthRepository = remember { AuthRepository() },
+    viewModel: AuthViewModel = viewModel { AuthViewModel() },
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+
     var isLoginMode by remember { mutableStateOf(true) }
     var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -77,15 +76,16 @@ fun AuthScreen(
     var hasAcceptedGdpr by remember { mutableStateOf(false) }
     var showPrivacyPolicyDialog by remember { mutableStateOf(false) }
 
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-    var isLoading by remember { mutableStateOf(false) }
+    var localErrorMessage by remember { mutableStateOf<String?>(null) }
 
     var showForgotPasswordDialog by remember { mutableStateOf(false) }
     var resetEmailInput by remember { mutableStateOf("") }
     var resetSuccessMessage by remember { mutableStateOf<String?>(null) }
     var resetErrorMessage by remember { mutableStateOf<String?>(null) }
 
-    val coroutineScope = rememberCoroutineScope()
+    if (uiState.isSuccess) {
+        onAuthSuccess()
+    }
 
     fun validatePasswordSecurity(pass: String): String? {
         val isLengthValid = pass.length >= 8
@@ -137,7 +137,7 @@ fun AuthScreen(
                     text = "Connexion",
                     onClick = {
                         isLoginMode = true
-                        errorMessage = null
+                        localErrorMessage = null
                     },
                     variant = if (isLoginMode) ButtonVariant.PRIMARY else ButtonVariant.SECONDARY,
                     modifier = Modifier.weight(1f).padding(end = 2.dp),
@@ -146,7 +146,7 @@ fun AuthScreen(
                     text = "Inscription",
                     onClick = {
                         isLoginMode = false
-                        errorMessage = null
+                        localErrorMessage = null
                     },
                     variant = if (!isLoginMode) ButtonVariant.PRIMARY else ButtonVariant.SECONDARY,
                     modifier = Modifier.weight(1f).padding(start = 2.dp),
@@ -298,6 +298,13 @@ fun AuthScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                val linkStyle =
+                    SpanStyle(
+                        color = MaterialTheme.colorScheme.primary,
+                        textDecoration = TextDecoration.Underline,
+                        fontWeight = FontWeight.Bold,
+                    )
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -311,14 +318,7 @@ fun AuthScreen(
                         text =
                             buildAnnotatedString {
                                 append("J'accepte la ")
-                                withStyle(
-                                    style =
-                                        SpanStyle(
-                                            color = MaterialTheme.colorScheme.primary,
-                                            textDecoration = TextDecoration.Underline,
-                                            fontWeight = FontWeight.Bold,
-                                        ),
-                                ) {
+                                withStyle(style = linkStyle) {
                                     append("politique de confidentialité")
                                 }
                                 append(" et le traitement de mes données personnelles (RGPD).")
@@ -332,7 +332,8 @@ fun AuthScreen(
                 }
             }
 
-            if (errorMessage != null) {
+            val displayError = localErrorMessage ?: uiState.errorMessage
+            if (displayError != null) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Surface(
                     color = MaterialTheme.colorScheme.errorContainer,
@@ -340,7 +341,7 @@ fun AuthScreen(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(
-                        text = errorMessage ?: "",
+                        text = displayError,
                         color = MaterialTheme.colorScheme.onErrorContainer,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(12.dp),
@@ -350,90 +351,42 @@ fun AuthScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            if (isLoading) {
+            if (uiState.isLoading) {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             } else {
                 TastyRoadButton(
                     text = if (isLoginMode) "Se connecter" else "S'inscrire",
                     onClick = {
                         if (username.isBlank() || password.isBlank()) {
-                            errorMessage = "Veuillez remplir votre identifiant et mot de passe."
+                            localErrorMessage = "Veuillez remplir votre identifiant et mot de passe."
                             return@TastyRoadButton
                         }
 
                         if (!isLoginMode) {
                             if (!hasAcceptedGdpr) {
-                                errorMessage =
+                                localErrorMessage =
                                     "Vous devez accepter la politique de confidentialité (RGPD) pour créer un compte."
                                 return@TastyRoadButton
                             }
 
                             if (email.isBlank() || !email.contains("@") || !email.contains(".")) {
-                                errorMessage = "Format d'e-mail incorrect."
+                                localErrorMessage = "Format d'e-mail incorrect."
                                 return@TastyRoadButton
                             }
 
                             val passwordSecurityError = validatePasswordSecurity(password)
                             if (passwordSecurityError != null) {
-                                errorMessage = passwordSecurityError
+                                localErrorMessage = passwordSecurityError
                                 return@TastyRoadButton
                             }
                         }
 
-                        errorMessage = null
-                        isLoading = true
+                        localErrorMessage = null
 
-                        coroutineScope.launch {
-                            try {
-                                if (isLoginMode) {
-                                    val tokenResp =
-                                        authRepository.login(
-                                            LoginRequest(username = username, password = password),
-                                        )
-                                    AuthSession.token = tokenResp.access
-                                    AuthSession.currentUser =
-                                        User(
-                                            username = username,
-                                            email = email.ifBlank { null },
-                                            age = ageText.toIntOrNull(),
-                                        )
-                                    isLoading = false
-                                    onAuthSuccess()
-                                } else {
-                                    val createdUser =
-                                        authRepository.register(
-                                            User(
-                                                username = username,
-                                                email = email,
-                                                age = ageText.toIntOrNull(),
-                                            ),
-                                        )
-                                    AuthSession.currentUser = createdUser
-                                    isLoading = false
-                                    onAuthSuccess()
-                                }
-                            } catch (e: Exception) {
-                                isLoading = false
-                                val msg = e.message?.lowercase() ?: ""
-                                errorMessage =
-                                    when {
-                                        msg.contains("connect") ||
-                                            msg.contains("timeout") ||
-                                            msg.contains("host") ||
-                                            msg.contains("500") ||
-                                            msg.contains("502") ||
-                                            msg.contains("503")
-                                        -> {
-                                            "Erreur serveur : le serveur est momentanément indisponible. Veuillez réessayer ultérieurement."
-                                        }
-                                        isLoginMode -> {
-                                            "E-mail/Identifiant ou mot de passe incorrect."
-                                        }
-                                        else -> {
-                                            "Cet identifiant ou cette adresse e-mail est déjà utilisé."
-                                        }
-                                    }
-                            }
+                        if (isLoginMode) {
+                            viewModel.login(username, password)
+                        } else {
+                            viewModel.register(username, email, ageText.toIntOrNull(), password)
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -496,26 +449,8 @@ fun AuthScreen(
                         }
 
                         resetErrorMessage = null
-                        coroutineScope.launch {
-                            try {
-                                authRepository.requestPasswordReset(resetEmailInput)
-                                resetErrorMessage = null
-                                resetSuccessMessage =
-                                    "Un e-mail de réinitialisation a été envoyé à $resetEmailInput."
-                            } catch (e: Exception) {
-                                resetSuccessMessage = null
-                                val msg = e.message?.lowercase() ?: ""
-                                resetErrorMessage =
-                                    if (msg.contains("connect") ||
-                                        msg.contains("timeout") ||
-                                        msg.contains("500") ||
-                                        msg.contains("host")
-                                    ) {
-                                        "Erreur serveur : le serveur est momentanément indisponible."
-                                    } else {
-                                        "Adresse e-mail inconnue ou incorrecte."
-                                    }
-                            }
+                        viewModel.requestPasswordReset(resetEmailInput) {
+                            resetSuccessMessage = "Un e-mail de réinitialisation a été envoyé à $resetEmailInput."
                         }
                     },
                 ) {
