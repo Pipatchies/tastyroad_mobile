@@ -58,6 +58,7 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.compose.uiTooling)
+            implementation("androidx.security:security-crypto:1.1.0-alpha06")
         }
         commonMain.dependencies {
             api(project(":core"))
@@ -75,6 +76,7 @@ kotlin {
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.ktor.client.cio)
+            implementation(libs.ktor.client.auth)
             implementation(libs.navigation.compose)
             implementation(libs.compose.material.icons.extended)
             implementation(libs.coil.compose)

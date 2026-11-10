@@ -13,3 +13,16 @@ data class TokenResponse(
     val access: String,
     val refresh: String? = null,
 )
+
+@Serializable
+data class TokenRefreshRequest(
+    val refresh: String,
+)
+
+@Serializable
+data class RegisterRequest(
+    val username: String,
+    val email: String,
+    val age: Int?,
+    val password: String,
+)
