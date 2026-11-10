@@ -34,7 +34,7 @@ class ProfileViewModel(
     fun fetchMyData() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
-            
+
             // 1. On s'assure d'avoir chargé les infos de l'utilisateur avec son ID
             if (AuthSession.currentUser == null) {
                 AuthSession.fetchCurrentUserProfile(fr.tastyroad.repository.AuthRepository())
@@ -42,10 +42,11 @@ class ProfileViewModel(
 
             val currentUser = AuthSession.currentUser
             if (currentUser == null) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false, 
-                    errorMessage = "Impossible de récupérer votre profil."
-                )
+                _uiState.value =
+                    _uiState.value.copy(
+                        isLoading = false,
+                        errorMessage = "Impossible de récupérer votre profil.",
+                    )
                 return@launch
             }
 

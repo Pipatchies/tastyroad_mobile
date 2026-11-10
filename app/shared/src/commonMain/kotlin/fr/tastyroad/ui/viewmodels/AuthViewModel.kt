@@ -38,7 +38,7 @@ class AuthViewModel(
                 val tokenResp = authRepository.login(LoginRequest(username = username, password = password))
                 AuthSession.token = tokenResp.access
                 AuthSession.refreshToken = tokenResp.refresh
-                
+
                 // On récupère le "vrai" profil avec l'ID depuis le serveur
                 try {
                     AuthSession.currentUser = authRepository.getMyProfile()
@@ -84,7 +84,7 @@ class AuthViewModel(
                 val tokenResp = authRepository.login(LoginRequest(username = username, password = password))
                 AuthSession.token = tokenResp.access
                 AuthSession.refreshToken = tokenResp.refresh
-                
+
                 try {
                     AuthSession.currentUser = authRepository.getMyProfile()
                 } catch (_: Exception) {
