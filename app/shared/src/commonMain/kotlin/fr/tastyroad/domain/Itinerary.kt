@@ -17,7 +17,7 @@ data class Itinerary(
     val speciality: String? = null,
     val facts: String? = null,
     val path: JsonObject? = null,
-    val author: Int,
+    val author: Int? = null,
     val favorites: List<Int> = emptyList(),
     val steps: GeoJsonFeatureCollection<Step>? = null,
     val comments: List<Comment> = emptyList(),

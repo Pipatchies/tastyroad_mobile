@@ -2,7 +2,7 @@ package fr.tastyroad.ui
 
 import fr.tastyroad.domain.MockData
 import fr.tastyroad.domain.User
-import fr.tastyroad.repository.AuthSession
+import fr.tastyroad.session.AuthSession
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -13,7 +13,7 @@ import kotlin.test.assertTrue
 class EndToEndFlowTest {
     @Test
     fun testCompleteEndToEndUserFlow() {
-        // --- 1. ACCUEIL (HomeScreen Flow) ---
+        // --- 1. ACCUEIL ---
         // L'utilisateur démarre sur l'écran d'accueil et consulte les itinéraires
         val itineraries = MockData.sampleItineraries
         assertTrue(itineraries.isNotEmpty(), "L'écran d'accueil doit afficher les cartes d'itinéraires")
@@ -22,12 +22,12 @@ class EndToEndFlowTest {
         assertNotNull(firstItinerary.itinerary.title)
         assertEquals("Saveurs d'Occitanie", firstItinerary.itinerary.title)
 
-        // --- 2. NAVIGATION CARTE (MapScreen Flow) ---
+        // --- 2. NAVIGATION CARTE ---
         // L'utilisateur clique sur le bouton flottant "Carte"
         val sampleClusters = listOf("Occitanie, France", "PACA, France", "Nord, France")
         assertTrue(sampleClusters.size >= 3, "La carte doit afficher les clusters de lieux")
 
-        // --- 3. CRÉATION D'ITINÉRAIRE (CreateItineraryScreen Flow) ---
+        // --- 3. CRÉATION D'ITINÉRAIRE ---
         // Étape 3a : Tracé sur carte (Moins de 2 points -> Invalide)
         var stepCount = 1
         var isStepCountValid = stepCount >= 2

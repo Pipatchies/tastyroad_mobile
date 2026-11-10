@@ -43,7 +43,6 @@ fun TastyRoadButton(
 
     when (variant) {
         ButtonVariant.PRIMARY -> {
-            // Au clic (isPressed), on inverse les couleurs (le contraire)
             val containerCol = if (isPressed) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
             val contentCol = if (isPressed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimary
 
@@ -64,7 +63,6 @@ fun TastyRoadButton(
             }
         }
         ButtonVariant.SECONDARY -> {
-            // Au clic (isPressed), on inverse les couleurs (le contraire)
             val containerCol = if (isPressed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
             val contentCol = if (isPressed) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground
 
