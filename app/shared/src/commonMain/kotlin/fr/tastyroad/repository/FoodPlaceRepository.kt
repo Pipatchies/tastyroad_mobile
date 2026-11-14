@@ -25,11 +25,12 @@ import kotlinx.serialization.json.Json
 class FoodPlaceRepository {
     private val client = AppClient.instance
 
-    private val osmClient = HttpClient {
-        install(ContentNegotiation) {
-            json(Json { ignoreUnknownKeys = true })
+    private val osmClient =
+        HttpClient {
+            install(ContentNegotiation) {
+                json(Json { ignoreUnknownKeys = true })
+            }
         }
-    }
 
     suspend fun getFoodPlaces(): List<FoodPlace> {
         return try {
@@ -45,19 +46,24 @@ class FoodPlaceRepository {
             }
         }
     }
-    
+
     suspend fun searchFoodPlacesOSM(query: String): List<FoodPlace> {
         if (query.isBlank()) return emptyList()
         println("--> [FoodPlaceRepository] Searching OSM Photon for: '$query'")
         return try {
-            val responseText = osmClient.get("https://photon.komoot.io/api/") {
-                parameter("q", query)
-                parameter("limit", "5")
-                parameter("lang", "fr")
-            }.bodyAsText()
+            val responseText =
+                osmClient.get("https://photon.komoot.io/api/") {
+                    parameter("q", query)
+                    parameter("limit", "5")
+                    parameter("lang", "fr")
+                }.bodyAsText()
 
             println("<-- [FoodPlaceRepository] Photon response length: ${responseText.length}")
-            val json = Json { ignoreUnknownKeys = true; isLenient = true }
+            val json =
+                Json {
+                    ignoreUnknownKeys = true
+                    isLenient = true
+                }
             val parsed = json.decodeFromString<PhotonResponse>(responseText)
 
             parsed.features.mapNotNull { feature ->
@@ -71,7 +77,7 @@ class FoodPlaceRepository {
                     name = name,
                     type = type,
                     description = desc,
-                    location = feature.geometry
+                    location = feature.geometry,
                 )
             }.also {
                 println("[FoodPlaceRepository] Found ${it.size} OSM food places.")
@@ -97,14 +103,15 @@ class FoodPlaceRepository {
         newFoodPlace: FoodPlace,
     ): FoodPlace {
         return try {
-            val feature: GeoJsonFeature<FoodPlace> = client.post("foodplaces/") {
-                header("Authorization", "Bearer $token")
-                contentType(ContentType.Application.Json)
-                setBody(newFoodPlace)
-            }.body()
+            val feature: GeoJsonFeature<FoodPlace> =
+                client.post("foodplaces/") {
+                    header("Authorization", "Bearer $token")
+                    contentType(ContentType.Application.Json)
+                    setBody(newFoodPlace)
+                }.body()
             feature.properties.copy(
                 id = feature.id ?: feature.properties.id,
-                location = feature.geometry ?: feature.properties.location
+                location = feature.geometry ?: feature.properties.location,
             )
         } catch (e: Exception) {
             e.printStackTrace()
@@ -122,14 +129,15 @@ class FoodPlaceRepository {
         updatedFoodPlace: FoodPlace,
     ): FoodPlace {
         return try {
-            val feature: GeoJsonFeature<FoodPlace> = client.put("foodplaces/$foodPlaceId/") {
-                header("Authorization", "Bearer $token")
-                contentType(ContentType.Application.Json)
-                setBody(updatedFoodPlace)
-            }.body()
+            val feature: GeoJsonFeature<FoodPlace> =
+                client.put("foodplaces/$foodPlaceId/") {
+                    header("Authorization", "Bearer $token")
+                    contentType(ContentType.Application.Json)
+                    setBody(updatedFoodPlace)
+                }.body()
             feature.properties.copy(
                 id = feature.id ?: feature.properties.id,
-                location = feature.geometry ?: feature.properties.location
+                location = feature.geometry ?: feature.properties.location,
             )
         } catch (e: Exception) {
             client.put("foodplaces/$foodPlaceId/") {

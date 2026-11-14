@@ -9,18 +9,18 @@ data class PhotonFeatureProperties(
     val city: String? = null,
     val country: String? = null,
     val osm_key: String? = null,
-    val osm_value: String? = null
+    val osm_value: String? = null,
 )
 
 @Serializable
 data class PhotonFeature(
     val geometry: JsonObject? = null,
-    val properties: PhotonFeatureProperties
+    val properties: PhotonFeatureProperties,
 )
 
 @Serializable
 data class PhotonResponse(
-    val features: List<PhotonFeature> = emptyList()
+    val features: List<PhotonFeature> = emptyList(),
 )
 
 @Serializable

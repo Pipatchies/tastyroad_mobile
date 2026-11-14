@@ -23,11 +23,17 @@ import kotlinx.serialization.json.Json
 
 class ItineraryRepository {
     private val client = AppClient.instance
-    private val json = Json { ignoreUnknownKeys = true; isLenient = true }
+    private val json =
+        Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+        }
 
     suspend fun getItineraries(): List<Itinerary> {
         val response: GeoJsonFeatureCollection<Itinerary> = client.get("itineraries/").body()
-        return response.features.map { it.properties }
+        return response.features.map { feature ->
+            feature.properties.copy(id = feature.id ?: feature.properties.id)
+        }
     }
 
     suspend fun getTopItineraries(limit: Int = 5): List<TopItineraryDTO> {
@@ -40,39 +46,42 @@ class ItineraryRepository {
 
     suspend fun getItineraryById(id: Int): Itinerary {
         val response: GeoJsonFeature<Itinerary> = client.get("itineraries/$id/").body()
-        return response.properties
+        return response.properties.copy(id = response.id ?: response.properties.id)
     }
 
     suspend fun createItinerary(
         token: String,
         newItinerary: Itinerary,
     ): Itinerary {
-        val stepsList: List<Step>? = newItinerary.steps?.features?.map { feature ->
-            feature.properties.copy(
-                location = feature.geometry ?: feature.properties.location
-            )
-        }
+        val stepsList: List<Step>? =
+            newItinerary.steps?.features?.map { feature ->
+                feature.properties.copy(
+                    location = feature.geometry ?: feature.properties.location,
+                )
+            }
 
-        val requestPayload = CreateItineraryRequest(
-            title = newItinerary.title,
-            type = newItinerary.type,
-            zone = newItinerary.zone,
-            distance = newItinerary.distance,
-            duration = newItinerary.duration,
-            difficulty = newItinerary.difficulty,
-            diet = newItinerary.diet,
-            speciality = newItinerary.speciality,
-            facts = newItinerary.facts,
-            path = newItinerary.path,
-            steps = stepsList,
-        )
+        val requestPayload =
+            CreateItineraryRequest(
+                title = newItinerary.title,
+                type = newItinerary.type,
+                zone = newItinerary.zone,
+                distance = newItinerary.distance,
+                duration = newItinerary.duration,
+                difficulty = newItinerary.difficulty,
+                diet = newItinerary.diet,
+                speciality = newItinerary.speciality,
+                facts = newItinerary.facts,
+                path = newItinerary.path,
+                steps = stepsList,
+            )
 
         println("--> [ItineraryRepository] POST itineraries/ | Token: ${token.take(10)}... | Payload: $requestPayload")
-        val httpResponse = client.post("itineraries/") {
-            header("Authorization", "Bearer $token")
-            contentType(ContentType.Application.Json)
-            setBody(requestPayload)
-        }
+        val httpResponse =
+            client.post("itineraries/") {
+                header("Authorization", "Bearer $token")
+                contentType(ContentType.Application.Json)
+                setBody(requestPayload)
+            }
         val responseText = httpResponse.bodyAsText()
         println("<-- [ItineraryRepository] Raw response status: ${httpResponse.status}, body text: $responseText")
 
@@ -105,7 +114,7 @@ class ItineraryRepository {
                 contentType(ContentType.Application.Json)
                 setBody(updatedItinerary)
             }.body()
-        return response.properties
+        return response.properties.copy(id = response.id ?: response.properties.id)
     }
 
     suspend fun deleteItinerary(
