@@ -28,6 +28,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -36,6 +37,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -56,7 +58,7 @@ import fr.tastyroad.ui.components.map.CreationMapView
 import fr.tastyroad.ui.components.metrics.MetricsBox
 import fr.tastyroad.ui.viewmodels.CreateItineraryViewModel
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun CreateItineraryScreen(
     onCloseClick: () -> Unit,
@@ -83,6 +85,12 @@ fun CreateItineraryScreen(
     var pathGeoJson by remember { mutableStateOf("{}") }
     var stepsGeoJson by remember { mutableStateOf("{}") }
 
+    var showFoodPlaceSheet by remember { mutableStateOf(false) }
+    var activeStepForFoodPlace by remember { mutableStateOf<Int?>(null) }
+    var newFoodPlaceName by remember { mutableStateOf("") }
+    var newFoodPlaceType by remember { mutableStateOf("") }
+    var newFoodPlaceDescription by remember { mutableStateOf("") }
+    val sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val isStepsValid = stepCount >= 2
     val isTitleValid = title.isNotBlank()
@@ -397,52 +405,197 @@ fun CreateItineraryScreen(
                     )
                 } else {
                     uiState.stepsDrafts.forEach { stepDraft ->
-                        Surface(
-                            shape = RoundedCornerShape(16.dp),
-                            color = Color(0xFFF7EBD3),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 16.dp)
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                val defaultTitle = if (stepDraft.order == 0) "Départ" else "Étape ${stepDraft.order}"
-                                Text(
-                                    text = defaultTitle,
-                                    fontWeight = FontWeight.Bold,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.onBackground,
-                                    modifier = Modifier.padding(bottom = 8.dp)
-                                )
-                                
-                                OutlinedTextField(
-                                    value = stepDraft.name,
-                                    onValueChange = { viewModel.updateStepName(stepDraft.order, it) },
-                                    label = { Text("Titre de l'étape (Optionnel)", color = Color.Gray, fontStyle = FontStyle.Italic) },
-                                    placeholder = { Text(defaultTitle) },
-                                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                                    singleLine = true,
-                                    shape = RoundedCornerShape(12.dp),
-                                    colors = TextFieldDefaults.colors(
-                                        focusedContainerColor = Color.White,
-                                        unfocusedContainerColor = Color.White,
-                                        focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                                        unfocusedIndicatorColor = Color.Transparent
+                        key(stepDraft.order) {
+                            Surface(
+                                shape = RoundedCornerShape(16.dp),
+                                color = Color(0xFFF7EBD3),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 16.dp)
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    val defaultTitle = if (stepDraft.order == 0) "Départ" else "Étape ${stepDraft.order}"
+                                    Text(
+                                        text = defaultTitle,
+                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.onBackground,
+                                        modifier = Modifier.padding(bottom = 8.dp)
                                     )
-                                )
-                                
-                                OutlinedTextField(
-                                    value = stepDraft.description,
-                                    onValueChange = { viewModel.updateStepDescription(stepDraft.order, it) },
-                                    label = { Text("Description de l'étape (Optionnel)", color = Color.Gray, fontStyle = FontStyle.Italic) },
-                                    modifier = Modifier.fillMaxWidth().height(100.dp),
-                                    shape = RoundedCornerShape(12.dp),
-                                    colors = TextFieldDefaults.colors(
-                                        focusedContainerColor = Color.White,
-                                        unfocusedContainerColor = Color.White,
-                                        focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                                        unfocusedIndicatorColor = Color.Transparent
+                                    
+                                    OutlinedTextField(
+                                        value = stepDraft.name,
+                                        onValueChange = { viewModel.updateStepName(stepDraft.order, it) },
+                                        label = { Text("Titre de l'étape (Optionnel)", color = Color.Gray, fontStyle = FontStyle.Italic) },
+                                        placeholder = { Text(defaultTitle) },
+                                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                                        singleLine = true,
+                                        shape = RoundedCornerShape(12.dp),
+                                        colors = TextFieldDefaults.colors(
+                                            focusedContainerColor = Color.White,
+                                            unfocusedContainerColor = Color.White,
+                                            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                                            unfocusedIndicatorColor = Color.Transparent
+                                        )
                                     )
-                                )
+                                    
+                                    OutlinedTextField(
+                                        value = stepDraft.description,
+                                        onValueChange = { viewModel.updateStepDescription(stepDraft.order, it) },
+                                        label = { Text("Description de l'étape (Optionnel)", color = Color.Gray, fontStyle = FontStyle.Italic) },
+                                        modifier = Modifier.fillMaxWidth().height(100.dp),
+                                        shape = RoundedCornerShape(12.dp),
+                                        colors = TextFieldDefaults.colors(
+                                            focusedContainerColor = Color.White,
+                                            unfocusedContainerColor = Color.White,
+                                            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                                            unfocusedIndicatorColor = Color.Transparent
+                                        )
+                                    )
+
+                                    Spacer(modifier = Modifier.height(8.dp))
+
+                                    ExposedDropdownMenuBox(
+                                        expanded = stepDraft.isDropdownExpanded,
+                                        onExpandedChange = { viewModel.setStepDropdownExpanded(stepDraft.order, it) }
+                                    ) {
+                                        OutlinedTextField(
+                                            value = stepDraft.foodPlaceSearchQuery,
+                                            onValueChange = { 
+                                                viewModel.updateStepFoodPlaceSearchQuery(stepDraft.order, it)
+                                            },
+                                            label = { Text("Lieu gourmand associé (Optionnel)", color = Color.Gray, fontStyle = FontStyle.Italic) },
+                                            placeholder = { Text("Rechercher ou créer un lieu...") },
+                                            modifier = Modifier.fillMaxWidth().menuAnchor(androidx.compose.material3.ExposedDropdownMenuAnchorType.PrimaryEditable, true),
+                                            shape = RoundedCornerShape(12.dp),
+                                            singleLine = true,
+                                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = stepDraft.isDropdownExpanded) },
+                                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
+                                                focusedContainerColor = Color.White,
+                                                unfocusedContainerColor = Color.White,
+                                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                                unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
+                                            )
+                                        )
+
+                                        if (stepDraft.isDropdownExpanded && stepDraft.foodPlaceSearchQuery.isNotBlank()) {
+                                            val filteredLocalPlaces = try {
+                                                uiState.foodPlaces.filter { 
+                                                    it.name.contains(stepDraft.foodPlaceSearchQuery, ignoreCase = true) 
+                                                }
+                                            } catch (e: Exception) {
+                                                emptyList()
+                                            }
+
+                                            val filteredOsmPlaces = try {
+                                                uiState.osmFoodPlaces.filter { osmPlace ->
+                                                    uiState.foodPlaces.none { localPlace -> localPlace.name.equals(osmPlace.name, ignoreCase = true) }
+                                                }
+                                            } catch (e: Exception) {
+                                                emptyList()
+                                            }
+
+                                            ExposedDropdownMenu(
+                                                expanded = stepDraft.isDropdownExpanded,
+                                                onDismissRequest = { viewModel.setStepDropdownExpanded(stepDraft.order, false) }
+                                            ) {
+                                                if (filteredLocalPlaces.isEmpty() && filteredOsmPlaces.isEmpty()) {
+                                                    DropdownMenuItem(
+                                                        text = { 
+                                                            if(stepDraft.isCreatingFoodPlace) {
+                                                                CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                                                            } else {
+                                                                Text("Aucun résultat. Créer manuellement : \"${stepDraft.foodPlaceSearchQuery}\"", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) 
+                                                            }
+                                                        },
+                                                        onClick = { 
+                                                            if(!stepDraft.isCreatingFoodPlace) {
+                                                                newFoodPlaceName = stepDraft.foodPlaceSearchQuery
+                                                                newFoodPlaceType = ""
+                                                                newFoodPlaceDescription = ""
+                                                                activeStepForFoodPlace = stepDraft.order
+                                                                showFoodPlaceSheet = true
+                                                                viewModel.setStepDropdownExpanded(stepDraft.order, false)
+                                                            }
+                                                        }
+                                                    )
+                                                } else {
+                                                    // 1. Afficher les résultats locaux (déjà en base de données TastyRoad)
+                                                    if(filteredLocalPlaces.isNotEmpty()) {
+                                                        DropdownMenuItem(
+                                                            text = { Text("Lieux enregistrés", fontWeight = FontWeight.Bold, color = Color.Gray) },
+                                                            onClick = {}
+                                                        )
+                                                        filteredLocalPlaces.forEach { place ->
+                                                            DropdownMenuItem(
+                                                                text = { Text("📍 ${place.name}") },
+                                                                onClick = {
+                                                                    viewModel.selectFoodPlaceForStep(stepDraft.order, place.id, place.name)
+                                                                }
+                                                            )
+                                                        }
+                                                    }
+                                                    
+                                                    // 2. Afficher les résultats du monde entier (OpenStreetMap)
+                                                    if(filteredOsmPlaces.isNotEmpty()) {
+                                                        DropdownMenuItem(
+                                                            text = { Text("Résultats OpenStreetMap", fontWeight = FontWeight.Bold, color = Color.Gray) },
+                                                            onClick = {}
+                                                        )
+                                                        filteredOsmPlaces.forEach { place ->
+                                                            DropdownMenuItem(
+                                                                text = { 
+                                                                    Column {
+                                                                        Text("🌍 ${place.name}")
+                                                                        Text(place.type ?: "Lieu", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                                                                    }
+                                                                },
+                                                                onClick = {
+                                                                    if(!stepDraft.isCreatingFoodPlace) {
+                                                                        // Création automatique et immédiate du lieu dans la BDD avec les infos d'OSM !
+                                                                        viewModel.createAndAssignFoodPlace(
+                                                                            order = stepDraft.order,
+                                                                            foodPlaceName = place.name,
+                                                                            foodPlaceType = place.type ?: "",
+                                                                            foodPlaceDesc = place.description ?: "",
+                                                                            locationGeometry = place.location
+                                                                        )
+                                                                        viewModel.setStepDropdownExpanded(stepDraft.order, false)
+                                                                    }
+                                                                }
+                                                            )
+                                                        }
+                                                    }
+                                                    
+                                                    // 3. Option manuelle si le nom ne correspond exactement à rien
+                                                    if (filteredLocalPlaces.none { it.name.equals(stepDraft.foodPlaceSearchQuery, ignoreCase = true) } &&
+                                                        filteredOsmPlaces.none { it.name.equals(stepDraft.foodPlaceSearchQuery, ignoreCase = true) }) {
+                                                        
+                                                        DropdownMenuItem(
+                                                            text = { 
+                                                                if(stepDraft.isCreatingFoodPlace) {
+                                                                    CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                                                                } else {
+                                                                    Text("Créer le lieu manuellement : \"${stepDraft.foodPlaceSearchQuery}\"", color = MaterialTheme.colorScheme.primary) 
+                                                                }
+                                                            },
+                                                            onClick = {
+                                                                if(!stepDraft.isCreatingFoodPlace) {
+                                                                    newFoodPlaceName = stepDraft.foodPlaceSearchQuery
+                                                                    newFoodPlaceType = ""
+                                                                    newFoodPlaceDescription = ""
+                                                                    activeStepForFoodPlace = stepDraft.order
+                                                                    showFoodPlaceSheet = true
+                                                                    viewModel.setStepDropdownExpanded(stepDraft.order, false)
+                                                                }
+                                                            }
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -493,6 +646,57 @@ fun CreateItineraryScreen(
                 }
 
                 Spacer(modifier = Modifier.height(40.dp))
+            }
+        }
+    }
+
+    if (showFoodPlaceSheet && activeStepForFoodPlace != null) {
+        androidx.compose.material3.ModalBottomSheet(
+            onDismissRequest = { showFoodPlaceSheet = false },
+            sheetState = sheetState,
+            containerColor = Color.White
+        ) {
+            Column(modifier = Modifier.padding(24.dp).verticalScroll(rememberScrollState())) {
+                Text("Créer un nouveau lieu gourmand", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = newFoodPlaceName,
+                    onValueChange = { newFoodPlaceName = it },
+                    label = { Text("Nom du lieu") },
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = newFoodPlaceType,
+                    onValueChange = { newFoodPlaceType = it },
+                    label = { Text("Type (ex: Restaurant, Fromagerie...)") },
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = newFoodPlaceDescription,
+                    onValueChange = { newFoodPlaceDescription = it },
+                    label = { Text("Description") },
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth().height(100.dp)
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                TastyRoadButton(
+                    text = "Créer et associer",
+                    onClick = {
+                        viewModel.createAndAssignFoodPlace(
+                            order = activeStepForFoodPlace!!,
+                            foodPlaceName = newFoodPlaceName,
+                            foodPlaceType = newFoodPlaceType,
+                            foodPlaceDesc = newFoodPlaceDescription
+                        )
+                        showFoodPlaceSheet = false
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }
