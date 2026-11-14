@@ -21,6 +21,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -80,6 +83,7 @@ fun CreateItineraryScreen(
     var pathGeoJson by remember { mutableStateOf("{}") }
     var stepsGeoJson by remember { mutableStateOf("{}") }
 
+
     val isStepsValid = stepCount >= 2
     val isTitleValid = title.isNotBlank()
     val isDescriptionValid = description.isNotBlank()
@@ -97,6 +101,25 @@ fun CreateItineraryScreen(
     val difficulties = listOf("Facile", "Moyen", "Difficile")
     val gastronomies = listOf("Viande", "Poisson", "Fromage", "Vignoble", "Végétarien")
 
+    val mapContent = remember {
+        androidx.compose.runtime.movableContentOf<String, Modifier> { type, modifier ->
+            CreationMapView(
+                transportType = type,
+                onMetricsUpdated = { dist, dur, steps, path, stepsJson ->
+                    distanceKm = dist
+                    durationMinutes = dur
+                    stepCount = steps
+                    pathGeoJson = path
+
+                    viewModel.updateStepsFromGeoJson(stepsJson)
+                    
+                    if (steps >= 2) showStepError = false
+                },
+                modifier = modifier,
+            )
+        }
+    }
+
     if (uiState.isSuccess) {
         onSaveSuccess()
     }
@@ -109,18 +132,7 @@ fun CreateItineraryScreen(
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background),
         ) {
-            CreationMapView(
-                transportType = selectedType,
-                onMetricsUpdated = { dist, dur, steps, path, stepsJson ->
-                    distanceKm = dist
-                    durationMinutes = dur
-                    stepCount = steps
-                    pathGeoJson = path
-                    stepsGeoJson = stepsJson
-                    if (steps >= 2) showStepError = false
-                },
-                modifier = Modifier.fillMaxSize(),
-            )
+            mapContent(selectedType, Modifier.fillMaxSize())
 
             Surface(
                 onClick = onCloseClick,
@@ -223,17 +235,7 @@ fun CreateItineraryScreen(
                         .height(200.dp)
                         .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)),
             ) {
-                CreationMapView(
-                    transportType = selectedType,
-                    onMetricsUpdated = { dist, dur, steps, path, stepsJson ->
-                        distanceKm = dist
-                        durationMinutes = dur
-                        stepCount = steps
-                        pathGeoJson = path
-                        stepsGeoJson = stepsJson
-                    },
-                    modifier = Modifier.fillMaxSize(),
-                )
+                mapContent(selectedType, Modifier.fillMaxSize())
 
                 Surface(
                     onClick = onCloseClick,
@@ -334,137 +336,10 @@ fun CreateItineraryScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                FormSectionLabel("Type de transport")
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    types.forEach { type ->
-                        val isSelected = selectedType == type
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = { selectedType = type },
-                            label = { Text(type) },
-                            shape = RoundedCornerShape(16.dp),
-                            colors =
-                                FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                                    containerColor = Color(0xFFF7EBD3),
-                                    labelColor = MaterialTheme.colorScheme.onBackground,
-                                ),
-                            border =
-                                FilterChipDefaults.filterChipBorder(
-                                    enabled = true,
-                                    selected = isSelected,
-                                    borderColor = MaterialTheme.colorScheme.primary,
-                                    selectedBorderColor = MaterialTheme.colorScheme.primary,
-                                    borderWidth = 1.dp,
-                                ),
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                FormSectionLabel("Région / Zone")
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    zones.forEach { zone ->
-                        val isSelected = selectedZone == zone
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = { selectedZone = zone },
-                            label = { Text(zone) },
-                            shape = RoundedCornerShape(16.dp),
-                            colors =
-                                FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                                    containerColor = Color(0xFFF7EBD3),
-                                    labelColor = MaterialTheme.colorScheme.onBackground,
-                                ),
-                            border =
-                                FilterChipDefaults.filterChipBorder(
-                                    enabled = true,
-                                    selected = isSelected,
-                                    borderColor = MaterialTheme.colorScheme.primary,
-                                    selectedBorderColor = MaterialTheme.colorScheme.primary,
-                                    borderWidth = 1.dp,
-                                ),
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                FormSectionLabel("Difficulté")
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    difficulties.forEach { diff ->
-                        val isSelected = selectedDifficulty == diff
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = { selectedDifficulty = diff },
-                            label = { Text(diff) },
-                            shape = RoundedCornerShape(16.dp),
-                            colors =
-                                FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                                    containerColor = Color(0xFFF7EBD3),
-                                    labelColor = MaterialTheme.colorScheme.onBackground,
-                                ),
-                            border =
-                                FilterChipDefaults.filterChipBorder(
-                                    enabled = true,
-                                    selected = isSelected,
-                                    borderColor = MaterialTheme.colorScheme.primary,
-                                    selectedBorderColor = MaterialTheme.colorScheme.primary,
-                                    borderWidth = 1.dp,
-                                ),
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                FormSectionLabel("Spécialité Gastronomique")
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    gastronomies.forEach { gastro ->
-                        val isSelected = selectedGastronomy == gastro
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = { selectedGastronomy = gastro },
-                            label = { Text(gastro) },
-                            shape = RoundedCornerShape(16.dp),
-                            colors =
-                                FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                                    containerColor = Color(0xFFF7EBD3),
-                                    labelColor = MaterialTheme.colorScheme.onBackground,
-                                ),
-                            border =
-                                FilterChipDefaults.filterChipBorder(
-                                    enabled = true,
-                                    selected = isSelected,
-                                    borderColor = MaterialTheme.colorScheme.primary,
-                                    selectedBorderColor = MaterialTheme.colorScheme.primary,
-                                    borderWidth = 1.dp,
-                                ),
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
+                FilterChipGroup("Type de transport", types, selectedType) { selectedType = it }
+                FilterChipGroup("Région / Zone", zones, selectedZone) { selectedZone = it }
+                FilterChipGroup("Difficulté", difficulties, selectedDifficulty) { selectedDifficulty = it }
+                FilterChipGroup("Spécialité Gastronomique", gastronomies, selectedGastronomy) { selectedGastronomy = it }
 
                 FormSectionLabel("Description")
                 OutlinedTextField(
@@ -500,6 +375,77 @@ fun CreateItineraryScreen(
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(start = 4.dp, top = 4.dp),
                     )
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+                
+                // --- SECTION ÉTAPES ---
+                Text(
+                    text = "Vos Étapes",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                
+                if (uiState.stepsDrafts.isEmpty()) {
+                    Text(
+                        text = "Aucune étape définie. Placez au moins deux points sur la carte.",
+                        color = Color.Gray,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                } else {
+                    uiState.stepsDrafts.forEach { stepDraft ->
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = Color(0xFFF7EBD3),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 16.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                val defaultTitle = if (stepDraft.order == 0) "Départ" else "Étape ${stepDraft.order}"
+                                Text(
+                                    text = defaultTitle,
+                                    fontWeight = FontWeight.Bold,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+                                
+                                OutlinedTextField(
+                                    value = stepDraft.name,
+                                    onValueChange = { viewModel.updateStepName(stepDraft.order, it) },
+                                    label = { Text("Titre de l'étape (Optionnel)", color = Color.Gray, fontStyle = FontStyle.Italic) },
+                                    placeholder = { Text(defaultTitle) },
+                                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                                    singleLine = true,
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = TextFieldDefaults.colors(
+                                        focusedContainerColor = Color.White,
+                                        unfocusedContainerColor = Color.White,
+                                        focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                                        unfocusedIndicatorColor = Color.Transparent
+                                    )
+                                )
+                                
+                                OutlinedTextField(
+                                    value = stepDraft.description,
+                                    onValueChange = { viewModel.updateStepDescription(stepDraft.order, it) },
+                                    label = { Text("Description de l'étape (Optionnel)", color = Color.Gray, fontStyle = FontStyle.Italic) },
+                                    modifier = Modifier.fillMaxWidth().height(100.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = TextFieldDefaults.colors(
+                                        focusedContainerColor = Color.White,
+                                        unfocusedContainerColor = Color.White,
+                                        focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                                        unfocusedIndicatorColor = Color.Transparent
+                                    )
+                                )
+                            }
+                        }
+                    }
                 }
 
                 if (uiState.errorMessage != null) {
@@ -561,4 +507,44 @@ private fun FormSectionLabel(text: String) {
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(bottom = 6.dp),
     )
+}
+
+@Composable
+fun FilterChipGroup(
+    label: String,
+    items: List<String>,
+    selectedItem: String,
+    onItemSelected: (String) -> Unit
+) {
+    FormSectionLabel(label)
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        items.forEach { item ->
+            val isSelected = selectedItem == item
+            FilterChip(
+                selected = isSelected,
+                onClick = { onItemSelected(item) },
+                label = { Text(item) },
+                shape = RoundedCornerShape(16.dp),
+                colors =
+                    FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                        containerColor = Color(0xFFF7EBD3),
+                        labelColor = MaterialTheme.colorScheme.onBackground,
+                    ),
+                border =
+                    FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = isSelected,
+                        borderColor = MaterialTheme.colorScheme.primary,
+                        selectedBorderColor = MaterialTheme.colorScheme.primary,
+                        borderWidth = 1.dp,
+                    ),
+            )
+        }
+    }
+    Spacer(modifier = Modifier.height(16.dp))
 }
