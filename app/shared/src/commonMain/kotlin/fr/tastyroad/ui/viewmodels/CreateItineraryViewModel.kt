@@ -9,6 +9,7 @@ import fr.tastyroad.domain.Step
 import fr.tastyroad.repository.FoodPlaceRepository
 import fr.tastyroad.repository.ItineraryRepository
 import fr.tastyroad.session.AuthSession
+import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,13 +25,15 @@ data class JsStepProperties(
     @SerialName("step_order") val stepOrder: Int
 )
 
-// Classe représentant l'état d'édition d'une étape dans le formulaire
 data class StepDraft(
     val order: Int,
     val defaultName: String,
     val name: String = "",
     val description: String = "",
     val foodPlaceId: Int? = null,
+    val foodPlaceSearchQuery: String = "",
+    val isDropdownExpanded: Boolean = false,
+    val isCreatingFoodPlace: Boolean = false,
     val geometry: JsonObject? = null
 )
 
@@ -38,6 +41,7 @@ data class CreateItineraryUiState(
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
     val foodPlaces: List<FoodPlace> = emptyList(),
+    val osmFoodPlaces: List<FoodPlace> = emptyList(),
     val errorMessage: String? = null,
     val stepsDrafts: List<StepDraft> = emptyList(),
 )
@@ -60,12 +64,14 @@ class CreateItineraryViewModel(
             try {
                 val places = foodPlaceRepository.getFoodPlaces()
                 _uiState.value = _uiState.value.copy(foodPlaces = places)
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
 
     fun updateStepsFromGeoJson(stepsGeoJson: String) {
+        if (stepsGeoJson == "{}" || stepsGeoJson.isBlank()) return
         try {
             val stepsCollection = json.decodeFromString<GeoJsonFeatureCollection<JsStepProperties>>(stepsGeoJson)
             val drafts = stepsCollection.features.mapIndexed { index, feature ->
@@ -102,11 +108,91 @@ class CreateItineraryViewModel(
         _uiState.value = _uiState.value.copy(stepsDrafts = updatedDrafts)
     }
 
-    fun updateStepFoodPlace(order: Int, foodPlaceId: Int?) {
+    fun selectFoodPlaceForStep(order: Int, foodPlaceId: Int?, foodPlaceName: String) {
+        searchJob?.cancel()
         val updatedDrafts = _uiState.value.stepsDrafts.map {
-            if (it.order == order) it.copy(foodPlaceId = foodPlaceId) else it
+            if (it.order == order) it.copy(
+                foodPlaceId = foodPlaceId,
+                foodPlaceSearchQuery = foodPlaceName,
+                isDropdownExpanded = false
+            ) else it
+        }
+        _uiState.value = _uiState.value.copy(stepsDrafts = updatedDrafts, osmFoodPlaces = emptyList())
+    }
+
+    fun setStepDropdownExpanded(order: Int, expanded: Boolean) {
+        val updatedDrafts = _uiState.value.stepsDrafts.map {
+            if (it.order == order) it.copy(isDropdownExpanded = expanded) else it
         }
         _uiState.value = _uiState.value.copy(stepsDrafts = updatedDrafts)
+    }
+
+    private var searchJob: kotlinx.coroutines.Job? = null
+
+    fun updateStepFoodPlaceSearchQuery(order: Int, query: String) {
+        val updatedDrafts = _uiState.value.stepsDrafts.map {
+            if (it.order == order) it.copy(foodPlaceSearchQuery = query, isDropdownExpanded = query.isNotBlank()) else it
+        }
+        _uiState.value = _uiState.value.copy(stepsDrafts = updatedDrafts)
+
+        searchJob?.cancel()
+        if (query.length >= 2) {
+            searchJob = viewModelScope.launch {
+                kotlinx.coroutines.delay(250)
+                try {
+                    val osmResults = foodPlaceRepository.searchFoodPlacesOSM(query)
+                    _uiState.value = _uiState.value.copy(osmFoodPlaces = osmResults)
+                } catch (_: Exception) {
+                }
+            }
+        } else {
+            _uiState.value = _uiState.value.copy(osmFoodPlaces = emptyList())
+        }
+    }
+
+    fun createAndAssignFoodPlace(order: Int, foodPlaceName: String, foodPlaceType: String, foodPlaceDesc: String, locationGeometry: JsonObject? = null) {
+        val token = AuthSession.token ?: return
+        val draft = _uiState.value.stepsDrafts.find { it.order == order } ?: return
+        
+        viewModelScope.launch {
+            val loadingDrafts = _uiState.value.stepsDrafts.map {
+                if (it.order == order) it.copy(isCreatingFoodPlace = true) else it
+            }
+            _uiState.value = _uiState.value.copy(stepsDrafts = loadingDrafts)
+            
+            try {
+                val newPlace = FoodPlace(
+                    name = foodPlaceName,
+                    type = foodPlaceType.ifBlank { null },
+                    description = foodPlaceDesc.ifBlank { null },
+                    location = locationGeometry ?: draft.geometry
+                )
+                val createdPlace = foodPlaceRepository.createFoodPlace(token, newPlace)
+                
+                val updatedPlaces = _uiState.value.foodPlaces + createdPlace
+                val finishedDrafts = _uiState.value.stepsDrafts.map {
+                    if (it.order == order) {
+                        it.copy(
+                            foodPlaceId = createdPlace.id, 
+                            foodPlaceSearchQuery = createdPlace.name,
+                            isCreatingFoodPlace = false,
+                            isDropdownExpanded = false
+                        )
+                    } else it
+                }
+                
+                _uiState.value = _uiState.value.copy(
+                    foodPlaces = updatedPlaces,
+                    stepsDrafts = finishedDrafts
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+                val errorDrafts = _uiState.value.stepsDrafts.map {
+                    if (it.order == order) it.copy(isCreatingFoodPlace = false, isDropdownExpanded = false) else it
+                }
+                _uiState.value = _uiState.value.copy(stepsDrafts = errorDrafts)
+            }
+        }
     }
 
     fun createItinerary(
@@ -145,15 +231,16 @@ class CreateItineraryViewModel(
                         type = "Feature",
                         geometry = draft.geometry,
                         properties = Step(
-                            name = draft.name.ifBlank { draft.defaultName },
+                            name = draft.name.ifBlank { draft.defaultName.ifBlank { "Étape ${draft.order + 1}" } },
                             description = draft.description.ifBlank { null },
                             stepOrder = draft.order,
-                            itinerary = 0, // Sera set par le backend
+                            itinerary = null,
                             foodplace = draft.foodPlaceId
                         )
                     )
                 }
-                val finalStepsCollection = GeoJsonFeatureCollection("FeatureCollection", finalFeatures)
+
+                val finalStepsCollection = if (finalFeatures.isEmpty()) null else GeoJsonFeatureCollection("FeatureCollection", finalFeatures)
 
                 val newItinerary =
                     Itinerary(
@@ -169,6 +256,7 @@ class CreateItineraryViewModel(
                         steps = finalStepsCollection,
                     )
 
+                println("[CreateItineraryViewModel] Envoi de l'itinéraire : $newItinerary")
                 itineraryRepository.createItinerary(token, newItinerary)
 
                 _uiState.value =
@@ -178,18 +266,26 @@ class CreateItineraryViewModel(
                     )
             } catch (e: Exception) {
                 e.printStackTrace()
-                val msg = e.message?.lowercase() ?: ""
-                val error =
-                    if (msg.contains("connect") || msg.contains("timeout") || msg.contains("host") || msg.contains("500")) {
-                        "Erreur serveur. Veuillez réessayer plus tard."
-                    } else {
-                        "Une erreur est survenue lors de la création de l'itinéraire."
+                println("[CreateItineraryViewModel] Exception lors de la création d'itinéraire : ${e::class.simpleName} - ${e.message}")
+                
+                var detailedError = e.message ?: e.toString()
+                if (e is io.ktor.client.plugins.ResponseException) {
+                    try {
+                        val bodyText = e.response.bodyAsText()
+                        println("[CreateItineraryViewModel] Status HTTP: ${e.response.status}, Réponse: $bodyText")
+                        if (bodyText.isNotBlank()) {
+                            detailedError = "HTTP ${e.response.status.value}: $bodyText"
+                        }
+                    } catch (ex: Exception) {
+                        println("[CreateItineraryViewModel] Échec de lecture du body : ${ex.message}")
+                        detailedError = "HTTP ${e.response.status.value}: ${e.message}"
                     }
+                }
 
                 _uiState.value =
                     _uiState.value.copy(
                         isLoading = false,
-                        errorMessage = error,
+                        errorMessage = "Erreur ($detailedError)",
                     )
             }
         }
