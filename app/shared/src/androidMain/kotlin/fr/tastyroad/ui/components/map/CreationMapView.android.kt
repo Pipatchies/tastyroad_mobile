@@ -86,7 +86,7 @@ actual fun CreationMapView(
             <script>
                 var map = L.map('map', {
                     zoomControl: false,
-                    touchZoom: 'center', 
+                    touchZoom: 'center',
                     doubleClickZoom: true,
                     scrollWheelZoom: true,
                     dragging: true,
@@ -104,9 +104,9 @@ actual fun CreationMapView(
                 var profile = "$osrmProfile";
 
                 function getSpeedMultiplier() {
-                    if (profile === 'driving') return 1.0;     
-                    if (profile === 'bike') return 3.33;       
-                    if (profile === 'foot') return 10.0;       
+                    if (profile === 'driving') return 1.0;
+                    if (profile === 'bike') return 3.33;
+                    if (profile === 'foot') return 10.0;
                     return 1.0;
                 }
 
@@ -128,28 +128,84 @@ actual fun CreationMapView(
                         return;
                     }
 
-                    var coords = points.map(p => p.lng + ',' + p.lat).join(';');
+
+                    var directCoords = points.map(function(p) { return [p.lat, p.lng]; });
+                    polyline.setLatLngs(directCoords);
+
+                    function sendFallbackGeometry() {
+                        var lineCoordinates = points.map(function(p) { return [p.lng, p.lat]; });
+                        var pathGeoJson = {
+                            type: "LineString",
+                            coordinates: lineCoordinates
+                        };
+
+                        var stepsFeatures = points.map(function(p, index) {
+                            return {
+                                type: "Feature",
+                                geometry: {
+                                    type: "Point",
+                                    coordinates: [p.lng, p.lat]
+                                },
+                                properties: {
+                                    name: (index === 0) ? "Départ" : "Étape " + index,
+                                    step_order: index
+                                }
+                            };
+                        });
+
+                        var stepsGeoJson = {
+                            type: "FeatureCollection",
+                            features: stepsFeatures
+                        };
+
+                        var distKm = 0.0;
+                        for (var i = 0; i < points.length - 1; i++) {
+                            var p1 = points[i];
+                            var p2 = points[i+1];
+                            var R = 6371;
+                            var dLat = (p2.lat - p1.lat) * Math.PI / 180;
+                            var dLng = (p2.lng - p1.lng) * Math.PI / 180;
+                            var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                                    Math.cos(p1.lat * Math.PI / 180) * Math.cos(p2.lat * Math.PI / 180) *
+                                    Math.sin(dLng/2) * Math.sin(dLng/2);
+                            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                            distKm += R * c;
+                        }
+
+                        var speed = (profile === 'driving') ? 50.0 : (profile === 'bike' ? 15.0 : 4.5);
+                        var durationMins = Math.round((distKm / speed) * 60.0);
+
+                        if (window.AndroidBridge) {
+                            window.AndroidBridge.updateMetricsAndGeometry(
+                                distKm,
+                                durationMins,
+                                stepsCount,
+                                JSON.stringify(pathGeoJson),
+                                JSON.stringify(stepsGeoJson)
+                            );
+                        }
+                    }
+
+                    var coords = points.map(function(p) { return p.lng + ',' + p.lat; }).join(';');
                     var url = 'https://router.project-osrm.org/route/v1/' + profile + '/' + coords + '?overview=full&geometries=geojson';
 
                     fetch(url)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.routes && data.routes.length > 0) {
+                        .then(function(response) { return response.json(); })
+                        .then(function(data) {
+                            if (data && data.routes && data.routes.length > 0) {
                                 var route = data.routes[0];
-                                var routeCoords = route.geometry.coordinates.map(c => [c[1], c[0]]);
+                                var routeCoords = route.geometry.coordinates.map(function(c) { return [c[1], c[0]]; });
                                 polyline.setLatLngs(routeCoords);
 
                                 var totalDistKm = route.distance / 1000.0;
                                 var durationMins = Math.round((route.duration * getSpeedMultiplier()) / 60.0);
 
-                                // -- GÉNÉRATION DU GEOJSON POUR L'API DJANGO --
-
                                 var pathGeoJson = {
                                     type: "LineString",
-                                    coordinates: route.geometry.coordinates 
+                                    coordinates: route.geometry.coordinates
                                 };
 
-                                var stepsFeatures = points.map((p, index) => {
+                                var stepsFeatures = points.map(function(p, index) {
                                     return {
                                         type: "Feature",
                                         geometry: {
@@ -176,10 +232,13 @@ actual fun CreationMapView(
                                         JSON.stringify(stepsGeoJson)
                                     );
                                 }
+                            } else {
+                                sendFallbackGeometry();
                             }
                         })
-                        .catch(err => {
+                        .catch(function(err) {
                             console.error("Erreur de routage OSRM:", err);
+                            sendFallbackGeometry();
                         });
                 }
 
@@ -201,27 +260,27 @@ actual fun CreationMapView(
                     });
 
                     var marker = L.marker([lat, lng], { icon: icon }).addTo(map);
-                    
+
                     marker.on('click', function(e) {
                         L.DomEvent.stopPropagation(e);
 
                         var index = markers.indexOf(marker);
                         if (index > -1) {
-                            
+
                             if (index === 0 && points.length >= 3) {
                                 console.log("Fermeture de la boucle détectée !");
                                 var startPoint = points[0];
                                 points.push({ lat: startPoint.lat, lng: startPoint.lng });
-                                
+
                                 var newIndex = points.length - 1;
                                 var loopIcon = L.divIcon({
                                     className: "step-pin",
-                                    html: "" + newIndex, 
+                                    html: "" + newIndex,
                                     iconSize: [26, 26],
                                     iconAnchor: [13, 13]
                                 });
                                 var loopMarker = L.marker([startPoint.lat, startPoint.lng], { icon: loopIcon }).addTo(map);
-                                
+
                                 loopMarker.on('click', function(ev) {
                                     L.DomEvent.stopPropagation(ev);
                                     var loopIdx = markers.indexOf(loopMarker);
@@ -232,23 +291,23 @@ actual fun CreationMapView(
                                         calculateRoute();
                                     }
                                 });
-                                
+
                                 markers.push(loopMarker);
                                 calculateRoute();
                                 return;
                             }
-                            
+
                             points.splice(index, 1);
-                            
+
                             map.removeLayer(marker);
-                            
+
                             markers.splice(index, 1);
-                            
+
                             markers.forEach(function(m, i) {
                                 var mIsStart = (i === 0);
                                 var mIconHtml = mIsStart ? "<span style='font-size: 24px; text-shadow: 0px 2px 4px rgba(0,0,0,0.5);'>📍</span>" : ("" + i);
                                 var mClassName = mIsStart ? "" : "step-pin";
-                                
+
                                 m.setIcon(L.divIcon({
                                     className: mClassName,
                                     html: mIconHtml,
@@ -256,7 +315,7 @@ actual fun CreationMapView(
                                     iconAnchor: mIsStart ? [12, 24] : [13, 13]
                                 }));
                             });
-                            
+
                             calculateRoute();
                         }
                     });

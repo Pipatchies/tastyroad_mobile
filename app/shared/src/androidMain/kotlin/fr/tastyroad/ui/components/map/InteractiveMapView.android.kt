@@ -1,5 +1,6 @@
 package fr.tastyroad.ui.components.map
 
+import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebSettings
 import android.webkit.WebView
@@ -100,6 +101,7 @@ actual fun InteractiveMapView(
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
                 settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+                setLayerType(View.LAYER_TYPE_SOFTWARE, null)
                 loadDataWithBaseURL("https://tile.openstreetmap.org", htmlContent, "text/html", "UTF-8", null)
             }
         },
