@@ -28,7 +28,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -171,27 +170,6 @@ fun CreateItineraryScreen(
                     )
                 }
             }
-
-            TextField(
-                value = foodPlaceSearchQuery,
-                onValueChange = { foodPlaceSearchQuery = it },
-                placeholder = { Text("Chercher un lieu gourmand (ex: Fromagerie)...", style = MaterialTheme.typography.bodySmall) },
-                trailingIcon = { Icon(Icons.Default.Search, contentDescription = "Rechercher", tint = Color.Gray) },
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(start = 64.dp, end = 16.dp, top = 12.dp)
-                        .align(Alignment.TopCenter),
-                shape = RoundedCornerShape(30.dp),
-                colors =
-                    TextFieldDefaults.colors(
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                    ),
-                singleLine = true,
-            )
 
             Column(
                 modifier =
