@@ -68,20 +68,32 @@ class ProfileViewModel(
 
                 val myDisplayItems =
                     myApiItineraries.map { itinerary ->
+                        val firstStepPhoto =
+                            itinerary.steps?.features
+                                ?.mapNotNull { it.properties.picture }
+                                ?.firstOrNull { it.isNotBlank() }
+                                ?: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=800&auto=format&fit=crop"
+
                         ItineraryDisplayItem(
                             itinerary = itinerary,
                             rating = 4.5f,
-                            imageUrl = "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=800&auto=format&fit=crop",
+                            imageUrl = firstStepPhoto,
                             stepsCount = itinerary.steps?.features?.size ?: 0,
                         )
                     }
 
                 val myFavoritesDisplayItems =
                     myApiFavorites.map { itinerary ->
+                        val firstStepPhoto =
+                            itinerary.steps?.features
+                                ?.mapNotNull { it.properties.picture }
+                                ?.firstOrNull { it.isNotBlank() }
+                                ?: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=800&auto=format&fit=crop"
+
                         ItineraryDisplayItem(
                             itinerary = itinerary,
                             rating = 4.5f,
-                            imageUrl = "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=800&auto=format&fit=crop",
+                            imageUrl = firstStepPhoto,
                             stepsCount = itinerary.steps?.features?.size ?: 0,
                         )
                     }

@@ -42,21 +42,27 @@ import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.compose.AsyncImage
+import fr.tastyroad.network.CloudinaryUploader
 import fr.tastyroad.ui.components.buttons.ButtonVariant
 import fr.tastyroad.ui.components.buttons.TastyRoadButton
 import fr.tastyroad.ui.components.map.CreationMapView
 import fr.tastyroad.ui.components.metrics.MetricsBox
+import fr.tastyroad.ui.components.picker.ImagePickerButton
 import fr.tastyroad.ui.viewmodels.CreateItineraryViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalLayoutApi::class, androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -84,6 +90,8 @@ fun CreateItineraryScreen(
     var stepCount by remember { mutableIntStateOf(0) }
     var pathGeoJson by remember { mutableStateOf("{}") }
     var stepsGeoJson by remember { mutableStateOf("{}") }
+
+    val coroutineScope = rememberCoroutineScope()
 
     var showFoodPlaceSheet by remember { mutableStateOf(false) }
     var activeStepForFoodPlace by remember { mutableStateOf<Int?>(null) }
@@ -663,6 +671,50 @@ fun CreateItineraryScreen(
                                             }
                                         }
                                     }
+
+                                    Spacer(modifier = Modifier.height(12.dp))
+
+                                    if (stepDraft.pictureUrl.isNotBlank()) {
+                                        Box(
+                                            modifier =
+                                                Modifier
+                                                    .fillMaxWidth()
+                                                    .height(140.dp)
+                                                    .clip(RoundedCornerShape(12.dp)),
+                                        ) {
+                                            AsyncImage(
+                                                model = stepDraft.pictureUrl,
+                                                contentDescription = "Photo d'étape",
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier.fillMaxSize(),
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                    }
+
+                                    var isUploadingStepPhoto by remember { mutableStateOf(false) }
+
+                                    ImagePickerButton(
+                                        buttonText =
+                                            if (isUploadingStepPhoto) {
+                                                "Téléversement..."
+                                            } else if (stepDraft.pictureUrl.isBlank()) {
+                                                "Ajouter une photo de l'étape"
+                                            } else {
+                                                "Changer la photo de l'étape"
+                                            },
+                                        onImagePicked = { bytes ->
+                                            coroutineScope.launch {
+                                                isUploadingStepPhoto = true
+                                                val uploadedUrl = CloudinaryUploader.uploadImage(bytes)
+                                                if (uploadedUrl != null) {
+                                                    viewModel.updateStepPicture(stepDraft.order, uploadedUrl)
+                                                }
+                                                isUploadingStepPhoto = false
+                                            }
+                                        },
+                                        modifier = Modifier.fillMaxWidth(),
+                                    )
                                 }
                             }
                         }
