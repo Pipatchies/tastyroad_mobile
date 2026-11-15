@@ -113,4 +113,40 @@ class ProfileViewModel(
             }
         }
     }
+
+    fun updateProfile(
+        username: String,
+        email: String,
+        age: Int?,
+        avatar: String?,
+        userRepository: fr.tastyroad.repository.UserRepository,
+        onSuccess: () -> Unit = {},
+    ) {
+        val token = AuthSession.token ?: return
+        val currentUser = AuthSession.currentUser ?: return
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+            try {
+                val updatedUser =
+                    fr.tastyroad.domain.User(
+                        id = currentUser.id,
+                        username = username,
+                        email = email.ifBlank { null },
+                        age = age,
+                        avatar = avatar?.ifBlank { null },
+                    )
+                val result = userRepository.updateMyProfile(token, updatedUser)
+                AuthSession.currentUser = result
+                _uiState.value = _uiState.value.copy(isLoading = false)
+                onSuccess()
+            } catch (e: Exception) {
+                _uiState.value =
+                    _uiState.value.copy(
+                        isLoading = false,
+                        errorMessage = "Erreur lors de la mise à jour du profil.",
+                    )
+            }
+        }
+    }
 }
