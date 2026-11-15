@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -98,13 +100,24 @@ fun ItineraryDetailScreen(
             val itinerary = uiState.itinerary!!
             val scrollState = rememberScrollState()
 
+            val stepsList = itinerary.steps?.features?.map { it.properties } ?: emptyList()
+            val stepPhotos = stepsList.mapNotNull { it.picture }.filter { it.isNotBlank() }
+            val carouselPhotos =
+                if (stepPhotos.isNotEmpty()) {
+                    stepPhotos
+                } else {
+                    listOf("https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=800&auto=format&fit=crop")
+                }
+
+            val pagerState = rememberPagerState(pageCount = { carouselPhotos.size })
+
             Column(
                 modifier =
                     Modifier
                         .fillMaxSize()
                         .verticalScroll(scrollState),
             ) {
-                // --- 1. HEADER IMAGE DE FOND ET BOUTON RETOUR ---
+                // --- 1. HEADER CARROUSEL DES PHOTOS D'ÉTAPES ET BOUTON RETOUR ---
                 Box(
                     modifier =
                         Modifier
@@ -112,12 +125,17 @@ fun ItineraryDetailScreen(
                             .height(280.dp)
                             .clip(RoundedCornerShape(bottomStart = 80.dp, bottomEnd = 80.dp)),
                 ) {
-                    AsyncImage(
-                        model = "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=800&auto=format&fit=crop",
-                        contentDescription = itinerary.title,
-                        contentScale = ContentScale.Crop,
+                    HorizontalPager(
+                        state = pagerState,
                         modifier = Modifier.fillMaxSize(),
-                    )
+                    ) { page ->
+                        AsyncImage(
+                            model = carouselPhotos[page],
+                            contentDescription = itinerary.title,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
 
                     Surface(
                         onClick = onBackClick,
@@ -140,29 +158,32 @@ fun ItineraryDetailScreen(
                         }
                     }
 
-                    Row(
-                        modifier =
-                            Modifier
-                                .align(Alignment.BottomCenter)
-                                .padding(bottom = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        repeat(4) { index ->
-                            Box(
-                                modifier =
-                                    Modifier
-                                        .size(if (index == 0) 10.dp else 8.dp)
-                                        .clip(CircleShape)
-                                        .background(
-                                            if (index == 0) {
-                                                MaterialTheme.colorScheme.primary
-                                            } else {
-                                                MaterialTheme.colorScheme.primary.copy(
-                                                    alpha = 0.4f,
-                                                )
-                                            },
-                                        ),
-                            )
+                    if (carouselPhotos.size > 1) {
+                        Row(
+                            modifier =
+                                Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .padding(bottom = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            repeat(carouselPhotos.size) { index ->
+                                val isSelected = pagerState.currentPage == index
+                                Box(
+                                    modifier =
+                                        Modifier
+                                            .size(if (isSelected) 10.dp else 8.dp)
+                                            .clip(CircleShape)
+                                            .background(
+                                                if (isSelected) {
+                                                    MaterialTheme.colorScheme.primary
+                                                } else {
+                                                    MaterialTheme.colorScheme.primary.copy(
+                                                        alpha = 0.4f,
+                                                    )
+                                                },
+                                            ),
+                                )
+                            }
                         }
                     }
                 }
