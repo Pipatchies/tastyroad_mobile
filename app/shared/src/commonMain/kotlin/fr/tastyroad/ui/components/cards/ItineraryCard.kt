@@ -1,5 +1,6 @@
 package fr.tastyroad.ui.components.cards
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,11 +20,11 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -34,11 +35,13 @@ import fr.tastyroad.domain.ItineraryDisplayItem
 @Composable
 fun ItineraryCard(
     item: ItineraryDisplayItem,
+    onClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val itinerary = item.itinerary
 
     Card(
+        onClick = onClick,
         shape = RoundedCornerShape(16.dp),
         modifier =
             modifier
@@ -56,13 +59,13 @@ fun ItineraryCard(
                 modifier = Modifier.fillMaxSize(),
             )
 
-            Surface(
-                color = MaterialTheme.colorScheme.surface,
-                shape = RoundedCornerShape(50),
+            Box(
                 modifier =
                     Modifier
                         .padding(16.dp)
-                        .align(Alignment.TopStart),
+                        .align(Alignment.TopStart)
+                        .clip(RoundedCornerShape(50))
+                        .background(MaterialTheme.colorScheme.surface),
             ) {
                 Text(
                     text = itinerary.difficulty ?: "Inconnu",
@@ -72,13 +75,13 @@ fun ItineraryCard(
                 )
             }
 
-            Surface(
-                color = MaterialTheme.colorScheme.surface,
-                shape = RoundedCornerShape(50),
+            Box(
                 modifier =
                     Modifier
                         .padding(16.dp)
-                        .align(Alignment.TopEnd),
+                        .align(Alignment.TopEnd)
+                        .clip(RoundedCornerShape(50))
+                        .background(MaterialTheme.colorScheme.surface),
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -99,14 +102,14 @@ fun ItineraryCard(
                 }
             }
 
-            Surface(
-                color = MaterialTheme.colorScheme.surface,
-                shape = RoundedCornerShape(16.dp),
+            Box(
                 modifier =
                     Modifier
                         .fillMaxWidth()
                         .align(Alignment.BottomCenter)
-                        .padding(8.dp),
+                        .padding(8.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.surface),
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
                     Row(
@@ -178,9 +181,11 @@ fun ItineraryCard(
 
 @Composable
 private fun BadgeItem(text: String) {
-    Surface(
-        color = MaterialTheme.colorScheme.primary,
-        shape = RoundedCornerShape(50),
+    Box(
+        modifier =
+            Modifier
+                .clip(RoundedCornerShape(50))
+                .background(MaterialTheme.colorScheme.primary),
     ) {
         Text(
             text = text,
