@@ -68,20 +68,32 @@ class ProfileViewModel(
 
                 val myDisplayItems =
                     myApiItineraries.map { itinerary ->
+                        val firstStepPhoto =
+                            itinerary.steps?.features
+                                ?.mapNotNull { it.properties.picture }
+                                ?.firstOrNull { it.isNotBlank() }
+                                ?: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=800&auto=format&fit=crop"
+
                         ItineraryDisplayItem(
                             itinerary = itinerary,
                             rating = 4.5f,
-                            imageUrl = "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=800&auto=format&fit=crop",
+                            imageUrl = firstStepPhoto,
                             stepsCount = itinerary.steps?.features?.size ?: 0,
                         )
                     }
 
                 val myFavoritesDisplayItems =
                     myApiFavorites.map { itinerary ->
+                        val firstStepPhoto =
+                            itinerary.steps?.features
+                                ?.mapNotNull { it.properties.picture }
+                                ?.firstOrNull { it.isNotBlank() }
+                                ?: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=800&auto=format&fit=crop"
+
                         ItineraryDisplayItem(
                             itinerary = itinerary,
                             rating = 4.5f,
-                            imageUrl = "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=800&auto=format&fit=crop",
+                            imageUrl = firstStepPhoto,
                             stepsCount = itinerary.steps?.features?.size ?: 0,
                         )
                     }
@@ -109,6 +121,42 @@ class ProfileViewModel(
                     _uiState.value.copy(
                         isLoading = false,
                         errorMessage = "Erreur lors du chargement de votre profil.",
+                    )
+            }
+        }
+    }
+
+    fun updateProfile(
+        username: String,
+        email: String,
+        age: Int?,
+        avatar: String?,
+        userRepository: fr.tastyroad.repository.UserRepository,
+        onSuccess: () -> Unit = {},
+    ) {
+        val token = AuthSession.token ?: return
+        val currentUser = AuthSession.currentUser ?: return
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+            try {
+                val updatedUser =
+                    fr.tastyroad.domain.User(
+                        id = currentUser.id,
+                        username = username,
+                        email = email.ifBlank { null },
+                        age = age,
+                        avatar = avatar?.ifBlank { null },
+                    )
+                val result = userRepository.updateMyProfile(token, updatedUser)
+                AuthSession.currentUser = result
+                _uiState.value = _uiState.value.copy(isLoading = false)
+                onSuccess()
+            } catch (e: Exception) {
+                _uiState.value =
+                    _uiState.value.copy(
+                        isLoading = false,
+                        errorMessage = "Erreur lors de la mise à jour du profil.",
                     )
             }
         }

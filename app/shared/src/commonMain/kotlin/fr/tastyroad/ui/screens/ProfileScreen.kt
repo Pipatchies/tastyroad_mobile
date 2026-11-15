@@ -19,11 +19,13 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -40,12 +42,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import fr.tastyroad.domain.MockData
+import fr.tastyroad.network.CloudinaryUploader
 import fr.tastyroad.repository.UserRepository
 import fr.tastyroad.session.AuthSession
 import fr.tastyroad.ui.components.buttons.ButtonVariant
@@ -55,6 +59,7 @@ import fr.tastyroad.ui.components.cards.PhotoCard
 import fr.tastyroad.ui.components.cards.ReviewCard
 import fr.tastyroad.ui.components.header.Header
 import fr.tastyroad.ui.components.metrics.MetricsBox
+import fr.tastyroad.ui.components.picker.ImagePickerButton
 import fr.tastyroad.ui.theme.TastyRoadTheme
 import fr.tastyroad.ui.viewmodels.ProfileViewModel
 import kotlinx.coroutines.launch
@@ -78,6 +83,12 @@ fun ProfileScreen(
     val tabTitles = listOf("Mes itinéraires", "Mes favoris", "Mes avis", "Mes photos")
 
     var showDeleteAccountDialog by remember { mutableStateOf(false) }
+    var showEditProfileDialog by remember { mutableStateOf(false) }
+    var editUsername by remember { mutableStateOf("") }
+    var editEmail by remember { mutableStateOf("") }
+    var editAge by remember { mutableStateOf("") }
+    var editAvatar by remember { mutableStateOf("") }
+
     val coroutineScope = rememberCoroutineScope()
 
     Column(
@@ -301,6 +312,22 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
+            // BOUTON MISE À JOUR DU PROFIL
+            TastyRoadButton(
+                text = "Modifier mon profil",
+                onClick = {
+                    editUsername = user?.username ?: ""
+                    editEmail = user?.email ?: ""
+                    editAge = user?.age?.toString() ?: ""
+                    editAvatar = user?.avatar ?: ""
+                    showEditProfileDialog = true
+                },
+                variant = ButtonVariant.PRIMARY,
+                modifier = Modifier.widthIn(min = 220.dp, max = 300.dp),
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
             // BOUTON NORMAL DE DÉCONNEXION (Avec effet couleur inversée au clic)
             TastyRoadButton(
                 text = "Se déconnecter",
@@ -380,6 +407,105 @@ fun ProfileScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteAccountDialog = false }) {
+                    Text("Annuler", color = Color.Gray)
+                }
+            },
+        )
+    }
+
+    if (showEditProfileDialog) {
+        var isUploadingAvatar by remember { mutableStateOf(false) }
+
+        AlertDialog(
+            onDismissRequest = { showEditProfileDialog = false },
+            title = {
+                Text(
+                    text = "Mettre à jour le profil",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = editUsername,
+                        onValueChange = { editUsername = it },
+                        label = { Text("Nom d'utilisateur") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    OutlinedTextField(
+                        value = editEmail,
+                        onValueChange = { editEmail = it },
+                        label = { Text("Email") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    OutlinedTextField(
+                        value = editAge,
+                        onValueChange = { editAge = it },
+                        label = { Text("Âge") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+
+                    ImagePickerButton(
+                        buttonText = if (isUploadingAvatar) "Téléversement..." else "Changer la photo de profil",
+                        onImagePicked = { bytes ->
+                            coroutineScope.launch {
+                                isUploadingAvatar = true
+                                val uploadedUrl = CloudinaryUploader.uploadImage(bytes)
+                                if (uploadedUrl != null) {
+                                    editAvatar = uploadedUrl
+                                }
+                                isUploadingAvatar = false
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+
+                    if (isUploadingAvatar) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.CenterHorizontally),
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+
+                    OutlinedTextField(
+                        value = editAvatar,
+                        onValueChange = { editAvatar = it },
+                        label = { Text("URL de l'avatar") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val parsedAge = editAge.toIntOrNull()
+                        viewModel.updateProfile(
+                            username = editUsername,
+                            email = editEmail,
+                            age = parsedAge,
+                            avatar = editAvatar,
+                            userRepository = userRepository,
+                            onSuccess = {
+                                showEditProfileDialog = false
+                            },
+                        )
+                    },
+                ) {
+                    Text(
+                        text = "Enregistrer",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditProfileDialog = false }) {
                     Text("Annuler", color = Color.Gray)
                 }
             },

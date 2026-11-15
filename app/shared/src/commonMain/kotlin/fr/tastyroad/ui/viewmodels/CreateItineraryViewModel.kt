@@ -30,6 +30,7 @@ data class StepDraft(
     val defaultName: String,
     val name: String = "",
     val description: String = "",
+    val pictureUrl: String = "",
     val foodPlaceId: Int? = null,
     val foodPlaceSearchQuery: String = "",
     val isDropdownExpanded: Boolean = false,
@@ -84,6 +85,7 @@ class CreateItineraryViewModel(
                         defaultName = defaultName,
                         name = oldDraft?.name ?: "",
                         description = oldDraft?.description ?: "",
+                        pictureUrl = oldDraft?.pictureUrl ?: "",
                         foodPlaceId = oldDraft?.foodPlaceId,
                         geometry = feature.geometry,
                     )
@@ -113,6 +115,17 @@ class CreateItineraryViewModel(
         val updatedDrafts =
             _uiState.value.stepsDrafts.map {
                 if (it.order == order) it.copy(description = newDesc) else it
+            }
+        _uiState.value = _uiState.value.copy(stepsDrafts = updatedDrafts)
+    }
+
+    fun updateStepPicture(
+        order: Int,
+        pictureUrl: String,
+    ) {
+        val updatedDrafts =
+            _uiState.value.stepsDrafts.map {
+                if (it.order == order) it.copy(pictureUrl = pictureUrl) else it
             }
         _uiState.value = _uiState.value.copy(stepsDrafts = updatedDrafts)
     }
@@ -275,6 +288,7 @@ class CreateItineraryViewModel(
                                 Step(
                                     name = draft.name.ifBlank { draft.defaultName.ifBlank { "Étape ${draft.order + 1}" } },
                                     description = draft.description.ifBlank { null },
+                                    picture = draft.pictureUrl.ifBlank { null },
                                     stepOrder = draft.order,
                                     itinerary = null,
                                     foodplace = draft.foodPlaceId,
