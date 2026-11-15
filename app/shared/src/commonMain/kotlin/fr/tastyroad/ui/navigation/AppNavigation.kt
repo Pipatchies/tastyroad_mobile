@@ -11,6 +11,7 @@ import fr.tastyroad.session.AuthSession
 import fr.tastyroad.ui.screens.AuthScreen
 import fr.tastyroad.ui.screens.CreateItineraryScreen
 import fr.tastyroad.ui.screens.HomeScreen
+import fr.tastyroad.ui.screens.ItineraryDetailScreen
 import fr.tastyroad.ui.screens.MapScreen
 import fr.tastyroad.ui.screens.ProfileScreen
 
@@ -29,6 +30,9 @@ fun AppNavigation(
                 onMapClick = {
                     navController.navigate(Screen.Map)
                 },
+                onItineraryClick = { id ->
+                    navController.navigate(Screen.ItineraryDetail(id))
+                },
             )
         }
 
@@ -44,7 +48,9 @@ fun AppNavigation(
             if (AuthSession.isLoggedIn) {
                 ProfileScreen(
                     onLogoutClick = {
-                        // Se déconnecte et rafraîchit la vue
+                    },
+                    onItineraryClick = { id ->
+                        navController.navigate(Screen.ItineraryDetail(id))
                     },
                 )
             } else {
@@ -87,7 +93,17 @@ fun AppNavigation(
         composable<Screen.ItineraryDetail> { backStackEntry ->
             val route = backStackEntry.toRoute<Screen.ItineraryDetail>()
             val itineraryId = route.itineraryId
-            Text("Écran de Détail pour l'itinéraire n° $itineraryId")
+            ItineraryDetailScreen(
+                itineraryId = itineraryId,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onDeleteSuccess = {
+                    navController.navigate(Screen.Home) {
+                        popUpTo<Screen.Home> { inclusive = true }
+                    }
+                },
+            )
         }
     }
 }

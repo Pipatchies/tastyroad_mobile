@@ -45,3 +45,20 @@ data class RawItinerariesResponse(
     val status: String,
     val data: List<TopItineraryDTO>,
 )
+
+// --- DTO POUR LA CRÉATION D'ITINÉRAIRE (POST /api/itineraries/) ---
+
+@Serializable
+data class CreateItineraryRequest(
+    val title: String,
+    val type: String? = null,
+    val zone: String? = null,
+    val distance: Double? = null,
+    val duration: String? = null,
+    val difficulty: String? = null,
+    val diet: String? = null,
+    val speciality: String? = null,
+    val facts: String? = null,
+    val path: JsonObject? = null,
+    val steps: List<Step>? = null,
+)

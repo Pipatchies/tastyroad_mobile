@@ -31,19 +31,47 @@ class MapViewModel(
             try {
                 val allItineraries = itineraryRepository.getItineraries()
 
-                val countByZone =
-                    allItineraries.groupBy { it.zone ?: "Inconnu" }
-                        .mapValues { it.value.size }
-
                 val dynamicClusters =
-                    countByZone.mapNotNull { (zoneName, count) ->
-                        val (lat, lng) = getCoordinatesForZone(zoneName) ?: return@mapNotNull null
-                        MapClusterData(
-                            name = zoneName,
-                            count = count,
-                            latitude = lat,
-                            longitude = lng,
-                        )
+                    allItineraries.mapNotNull { itinerary ->
+                        var lat: Double? = null
+                        var lng: Double? = null
+
+                        val path = itinerary.path
+                        if (path != null && path.containsKey("coordinates")) {
+                            try {
+                                val coords = path["coordinates"] as? kotlinx.serialization.json.JsonArray
+                                if (coords != null && coords.isNotEmpty()) {
+                                    val firstPoint = coords[0] as? kotlinx.serialization.json.JsonArray
+                                    if (firstPoint != null && firstPoint.size >= 2) {
+                                        lng = firstPoint[0].toString().toDoubleOrNull()
+                                        lat = firstPoint[1].toString().toDoubleOrNull()
+                                    }
+                                }
+                            } catch (e: Exception) {
+                            }
+                        }
+
+                        if (lat == null || lng == null) {
+                            val zoneCoords = getCoordinatesForZone(itinerary.zone ?: "")
+                            if (zoneCoords != null) {
+                                lat = zoneCoords.first
+                                lng = zoneCoords.second
+                            }
+                        }
+
+                        if (lat != null && lng != null) {
+                            val finalLat = if (itinerary.path == null) lat + (kotlin.random.Random.nextDouble(-0.05, 0.05)) else lat
+                            val finalLng = if (itinerary.path == null) lng + (kotlin.random.Random.nextDouble(-0.05, 0.05)) else lng
+
+                            MapClusterData(
+                                name = itinerary.title,
+                                count = 1,
+                                latitude = finalLat,
+                                longitude = finalLng,
+                            )
+                        } else {
+                            null
+                        }
                     }
 
                 _uiState.value =

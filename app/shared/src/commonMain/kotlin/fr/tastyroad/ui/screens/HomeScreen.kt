@@ -28,6 +28,7 @@ import fr.tastyroad.ui.viewmodels.HomeViewModel
 @Composable
 fun HomeScreen(
     onMapClick: () -> Unit = {},
+    onItineraryClick: (Int) -> Unit = {},
     viewModel: HomeViewModel = viewModel { HomeViewModel() },
 ) {
     val scrollState = rememberScrollState()
@@ -76,7 +77,12 @@ fun HomeScreen(
                     )
                 } else {
                     uiState.itineraries.forEach { item ->
-                        ItineraryCard(item = item)
+                        ItineraryCard(
+                            item = item,
+                            onClick = {
+                                item.itinerary.id?.let { id -> onItineraryClick(id) }
+                            },
+                        )
                     }
                 }
 

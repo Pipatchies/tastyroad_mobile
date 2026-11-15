@@ -48,7 +48,7 @@ actual fun CreationMapView(
         <!DOCTYPE html>
         <html>
         <head>
-            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=10.0" />
+                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=10.0" />
             <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
             <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
             <style>
@@ -86,9 +86,11 @@ actual fun CreationMapView(
             <script>
                 var map = L.map('map', {
                     zoomControl: false,
-                    touchZoom: true,
+                    touchZoom: 'center',
                     doubleClickZoom: true,
-                    scrollWheelZoom: true
+                    scrollWheelZoom: true,
+                    dragging: true,
+                    tap: true
                 }).setView([46.603354, 1.888334], 6);
 
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -101,6 +103,20 @@ actual fun CreationMapView(
                 var polyline = L.polyline([], { color: '#E44821', weight: 5, opacity: 0.9 }).addTo(map);
                 var profile = "$osrmProfile";
 
+                function getSpeedMultiplier() {
+                    if (profile === 'driving') return 1.0;
+                    if (profile === 'bike') return 3.33;
+                    if (profile === 'foot') return 10.0;
+                    return 1.0;
+                }
+
+                function updateProfile(newProfile) {
+                    if (profile !== newProfile) {
+                        profile = newProfile;
+                        calculateRoute();
+                    }
+                }
+
                 function calculateRoute() {
                     var stepsCount = points.length > 0 ? points.length - 1 : 0;
 
@@ -112,31 +128,84 @@ actual fun CreationMapView(
                         return;
                     }
 
-                    // On construit l'URL de l'API OSRM (Open Source Routing Machine)
-                    var coords = points.map(p => p.lng + ',' + p.lat).join(';');
+
+                    var directCoords = points.map(function(p) { return [p.lat, p.lng]; });
+                    polyline.setLatLngs(directCoords);
+
+                    function sendFallbackGeometry() {
+                        var lineCoordinates = points.map(function(p) { return [p.lng, p.lat]; });
+                        var pathGeoJson = {
+                            type: "LineString",
+                            coordinates: lineCoordinates
+                        };
+
+                        var stepsFeatures = points.map(function(p, index) {
+                            return {
+                                type: "Feature",
+                                geometry: {
+                                    type: "Point",
+                                    coordinates: [p.lng, p.lat]
+                                },
+                                properties: {
+                                    name: (index === 0) ? "Départ" : "Étape " + index,
+                                    step_order: index
+                                }
+                            };
+                        });
+
+                        var stepsGeoJson = {
+                            type: "FeatureCollection",
+                            features: stepsFeatures
+                        };
+
+                        var distKm = 0.0;
+                        for (var i = 0; i < points.length - 1; i++) {
+                            var p1 = points[i];
+                            var p2 = points[i+1];
+                            var R = 6371;
+                            var dLat = (p2.lat - p1.lat) * Math.PI / 180;
+                            var dLng = (p2.lng - p1.lng) * Math.PI / 180;
+                            var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                                    Math.cos(p1.lat * Math.PI / 180) * Math.cos(p2.lat * Math.PI / 180) *
+                                    Math.sin(dLng/2) * Math.sin(dLng/2);
+                            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                            distKm += R * c;
+                        }
+
+                        var speed = (profile === 'driving') ? 50.0 : (profile === 'bike' ? 15.0 : 4.5);
+                        var durationMins = Math.round((distKm / speed) * 60.0);
+
+                        if (window.AndroidBridge) {
+                            window.AndroidBridge.updateMetricsAndGeometry(
+                                distKm,
+                                durationMins,
+                                stepsCount,
+                                JSON.stringify(pathGeoJson),
+                                JSON.stringify(stepsGeoJson)
+                            );
+                        }
+                    }
+
+                    var coords = points.map(function(p) { return p.lng + ',' + p.lat; }).join(';');
                     var url = 'https://router.project-osrm.org/route/v1/' + profile + '/' + coords + '?overview=full&geometries=geojson';
 
                     fetch(url)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.routes && data.routes.length > 0) {
+                        .then(function(response) { return response.json(); })
+                        .then(function(data) {
+                            if (data && data.routes && data.routes.length > 0) {
                                 var route = data.routes[0];
-                                var routeCoords = route.geometry.coordinates.map(c => [c[1], c[0]]);
+                                var routeCoords = route.geometry.coordinates.map(function(c) { return [c[1], c[0]]; });
                                 polyline.setLatLngs(routeCoords);
 
                                 var totalDistKm = route.distance / 1000.0;
-                                var durationMins = Math.round(route.duration / 60.0);
+                                var durationMins = Math.round((route.duration * getSpeedMultiplier()) / 60.0);
 
-                                // -- GÉNÉRATION DU GEOJSON POUR L'API DJANGO --
-
-                                // 1. Path (Ligne du tracé entier)
                                 var pathGeoJson = {
                                     type: "LineString",
-                                    coordinates: route.geometry.coordinates // [lng, lat]
+                                    coordinates: route.geometry.coordinates
                                 };
 
-                                // 2. Steps (FeatureCollection de Points)
-                                var stepsFeatures = points.map((p, index) => {
+                                var stepsFeatures = points.map(function(p, index) {
                                     return {
                                         type: "Feature",
                                         geometry: {
@@ -163,10 +232,13 @@ actual fun CreationMapView(
                                         JSON.stringify(stepsGeoJson)
                                     );
                                 }
+                            } else {
+                                sendFallbackGeometry();
                             }
                         })
-                        .catch(err => {
+                        .catch(function(err) {
                             console.error("Erreur de routage OSRM:", err);
+                            sendFallbackGeometry();
                         });
                 }
 
@@ -175,16 +247,79 @@ actual fun CreationMapView(
                     var lng = e.latlng.lng;
                     points.push({ lat: lat, lng: lng });
 
+                    var markerIndex = points.length - 1;
                     var isStart = (points.length === 1);
-                    var iconHtml = isStart ? "📍" : points.length - 1;
-                    var className = isStart ? "start-pin" : "step-pin";
+                    var iconHtml = isStart ? "<span style='font-size: 24px; text-shadow: 0px 2px 4px rgba(0,0,0,0.5);'>📍</span>" : ("" + markerIndex);
+                    var className = isStart ? "" : "step-pin";
 
                     var icon = L.divIcon({
                         className: className,
-                        html: iconHtml
+                        html: iconHtml,
+                        iconSize: isStart ? [24, 24] : [26, 26],
+                        iconAnchor: isStart ? [12, 24] : [13, 13]
                     });
 
                     var marker = L.marker([lat, lng], { icon: icon }).addTo(map);
+
+                    marker.on('click', function(e) {
+                        L.DomEvent.stopPropagation(e);
+
+                        var index = markers.indexOf(marker);
+                        if (index > -1) {
+
+                            if (index === 0 && points.length >= 3) {
+                                console.log("Fermeture de la boucle détectée !");
+                                var startPoint = points[0];
+                                points.push({ lat: startPoint.lat, lng: startPoint.lng });
+
+                                var newIndex = points.length - 1;
+                                var loopIcon = L.divIcon({
+                                    className: "step-pin",
+                                    html: "" + newIndex,
+                                    iconSize: [26, 26],
+                                    iconAnchor: [13, 13]
+                                });
+                                var loopMarker = L.marker([startPoint.lat, startPoint.lng], { icon: loopIcon }).addTo(map);
+
+                                loopMarker.on('click', function(ev) {
+                                    L.DomEvent.stopPropagation(ev);
+                                    var loopIdx = markers.indexOf(loopMarker);
+                                    if(loopIdx > -1) {
+                                        points.splice(loopIdx, 1);
+                                        map.removeLayer(loopMarker);
+                                        markers.splice(loopIdx, 1);
+                                        calculateRoute();
+                                    }
+                                });
+
+                                markers.push(loopMarker);
+                                calculateRoute();
+                                return;
+                            }
+
+                            points.splice(index, 1);
+
+                            map.removeLayer(marker);
+
+                            markers.splice(index, 1);
+
+                            markers.forEach(function(m, i) {
+                                var mIsStart = (i === 0);
+                                var mIconHtml = mIsStart ? "<span style='font-size: 24px; text-shadow: 0px 2px 4px rgba(0,0,0,0.5);'>📍</span>" : ("" + i);
+                                var mClassName = mIsStart ? "" : "step-pin";
+
+                                m.setIcon(L.divIcon({
+                                    className: mClassName,
+                                    html: mIconHtml,
+                                    iconSize: mIsStart ? [24, 24] : [26, 26],
+                                    iconAnchor: mIsStart ? [12, 24] : [13, 13]
+                                }));
+                            });
+
+                            calculateRoute();
+                        }
+                    });
+
                     markers.push(marker);
 
                     calculateRoute();
@@ -214,6 +349,15 @@ actual fun CreationMapView(
                 )
                 loadDataWithBaseURL("https://tile.openstreetmap.org", htmlContent, "text/html", "UTF-8", null)
             }
+        },
+        update = { webView ->
+            val updatedOsrmProfile =
+                when (transportType.lowercase()) {
+                    "vélo", "velo" -> "bike"
+                    "moto" -> "driving"
+                    else -> "foot"
+                }
+            webView.evaluateJavascript("if (typeof updateProfile === 'function') { updateProfile('$updatedOsrmProfile'); }", null)
         },
         modifier = modifier,
     )

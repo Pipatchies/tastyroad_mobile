@@ -70,6 +70,7 @@ private const val AVATAR =
 @Composable
 fun ProfileScreen(
     onLogoutClick: () -> Unit,
+    onItineraryClick: (Int) -> Unit = {},
     onMapClick: () -> Unit = {},
     initialTabIndex: Int = 0,
     userRepository: UserRepository = remember { UserRepository() },
@@ -247,6 +248,9 @@ fun ProfileScreen(
                                 items(uiState.myItineraries) { item ->
                                     ItineraryCard(
                                         item = item,
+                                        onClick = {
+                                            item.itinerary.id?.let { id -> onItineraryClick(id) }
+                                        },
                                         modifier = Modifier.width(320.dp),
                                     )
                                 }
@@ -265,6 +269,9 @@ fun ProfileScreen(
                                 items(uiState.myFavorites) { item ->
                                     ItineraryCard(
                                         item = item,
+                                        onClick = {
+                                            item.itinerary.id?.let { id -> onItineraryClick(id) }
+                                        },
                                         modifier = Modifier.width(320.dp),
                                     )
                                 }
