@@ -36,7 +36,7 @@ fun Header(
         modifier =
             modifier
                 .fillMaxWidth()
-                .height(180.dp)
+                .height(130.dp)
                 .background(
                     color = MaterialTheme.colorScheme.secondary,
                     shape = CurvedBottomShape(),
@@ -85,7 +85,7 @@ fun HeaderSearchBar(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 32.dp),
+                .padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 18.dp),
         shape = RoundedCornerShape(30.dp),
         colors =
             TextFieldDefaults.colors(
