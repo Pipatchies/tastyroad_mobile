@@ -12,8 +12,15 @@ import androidx.compose.ui.viewinterop.AndroidView
 @Composable
 actual fun InteractiveMapView(
     clusters: List<MapClusterData>,
+    centerLat: Double?,
+    centerLng: Double?,
+    zoomLevel: Int?,
     modifier: Modifier,
 ) {
+    val initialLat = centerLat ?: 46.603354
+    val initialLng = centerLng ?: 1.888334
+    val initialZoom = zoomLevel ?: 6
+
     val markersJson =
         clusters.joinToString(",") { cluster ->
             "{ lat: ${cluster.latitude}, lng: ${cluster.longitude}, count: ${cluster.count}, name: '${cluster.name.replace("'", "\\'")}' }"
@@ -54,7 +61,7 @@ actual fun InteractiveMapView(
         <body>
             <div id="map"></div>
             <script>
-                var map = L.map('map', { zoomControl: false }).setView([46.603354, 1.888334], 6);
+                var map = L.map('map', { zoomControl: false }).setView([$initialLat, $initialLng], $initialZoom);
 
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     maxZoom: 19,
@@ -84,6 +91,12 @@ actual fun InteractiveMapView(
                 });
 
                 map.addLayer(markersGroup);
+
+                function setMapView(lat, lng, zoom) {
+                    if (typeof map !== 'undefined') {
+                        map.setView([lat, lng], zoom);
+                    }
+                }
             </script>
         </body>
         </html>
@@ -103,6 +116,13 @@ actual fun InteractiveMapView(
                 settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
                 setLayerType(View.LAYER_TYPE_SOFTWARE, null)
                 loadDataWithBaseURL("https://tile.openstreetmap.org", htmlContent, "text/html", "UTF-8", null)
+            }
+        },
+        update = { webView ->
+            webView.loadDataWithBaseURL("https://tile.openstreetmap.org", htmlContent, "text/html", "UTF-8", null)
+            if (centerLat != null && centerLng != null) {
+                val zoom = zoomLevel ?: 11
+                webView.evaluateJavascript("if (typeof setMapView === 'function') { setMapView($centerLat, $centerLng, $zoom); }", null)
             }
         },
         modifier = modifier,

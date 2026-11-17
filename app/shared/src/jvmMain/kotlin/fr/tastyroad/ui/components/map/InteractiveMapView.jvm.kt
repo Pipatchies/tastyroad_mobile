@@ -9,6 +9,9 @@ import androidx.compose.ui.Modifier
 @Composable
 actual fun InteractiveMapView(
     clusters: List<MapClusterData>,
+    centerLat: Double?,
+    centerLng: Double?,
+    zoomLevel: Int?,
     modifier: Modifier,
 ) {
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
