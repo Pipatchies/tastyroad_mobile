@@ -32,7 +32,7 @@ fun MetricsBox(
 ) {
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.background,
+        color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
         modifier = modifier.fillMaxWidth(),
     ) {

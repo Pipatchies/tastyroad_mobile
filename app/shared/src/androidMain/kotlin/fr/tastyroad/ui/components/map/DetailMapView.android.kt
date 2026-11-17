@@ -27,7 +27,7 @@ actual fun DetailMapView(
             <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
             <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
             <style>
-                body, html, #map { height: 100%; margin: 0; padding: 0; background: #f0ebe0; }
+                body, html, #map { height: 100%; margin: 0; padding: 0; background: #ffffff; }
                 .start-pin {
                     background-color: #E44821;
                     color: white;

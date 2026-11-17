@@ -38,7 +38,7 @@ actual fun InteractiveMapView(
             <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
             <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
             <style>
-                body, html, #map { height: 100%; margin: 0; padding: 0; background: #f0ebe0; }
+                body, html, #map { height: 100%; margin: 0; padding: 0; background: #ffffff; }
                 .marker-cluster-custom {
                     background-color: rgba(228, 72, 33, 0.6);
                 }
