@@ -37,7 +37,7 @@ fun FilterChipDropdown(
     var expanded by remember { mutableStateOf(false) }
     val isSelected = selectedOption != null
 
-    val containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.background
+    val containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
     val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground
     val borderStroke = BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
 
@@ -74,7 +74,7 @@ fun FilterChipDropdown(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             shape = RoundedCornerShape(16.dp),
-            containerColor = MaterialTheme.colorScheme.background,
+            containerColor = MaterialTheme.colorScheme.surface,
             border = borderStroke,
         ) {
             if (isSelected) {

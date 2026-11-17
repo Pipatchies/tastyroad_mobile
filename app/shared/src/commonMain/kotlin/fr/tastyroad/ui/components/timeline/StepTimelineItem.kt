@@ -48,7 +48,7 @@ fun StepTimelineItem(
         ) {
             Surface(
                 shape = CircleShape,
-                color = MaterialTheme.colorScheme.background,
+                color = MaterialTheme.colorScheme.surface,
                 border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
                 modifier = Modifier.size(36.dp),
             ) {
@@ -122,7 +122,7 @@ fun TimelineEndBadge(modifier: Modifier = Modifier) {
     ) {
         Surface(
             shape = CircleShape,
-            color = MaterialTheme.colorScheme.background,
+            color = MaterialTheme.colorScheme.surface,
             border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
             modifier = Modifier.size(36.dp),
         ) {
