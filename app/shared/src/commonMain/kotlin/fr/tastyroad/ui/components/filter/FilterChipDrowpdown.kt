@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.DropdownMenu
@@ -23,40 +24,48 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun FilterChipDropdown(
     filterName: String,
     options: List<String>,
-    onOptionSelected: (String) -> Unit,
+    selectedOption: String?,
+    onOptionSelected: (String?) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val isSelected = selectedOption != null
+
+    val containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.background
+    val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground
+    val borderStroke = BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+
+    val displayText = if (selectedOption != null) "$filterName: $selectedOption" else filterName
 
     Box(modifier = Modifier.wrapContentSize(Alignment.TopStart)) {
         Surface(
             onClick = { expanded = !expanded },
             shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.background,
-            border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-            modifier =
-                Modifier
-                    .clickable { expanded = !expanded },
+            color = containerColor,
+            border = borderStroke,
+            modifier = Modifier.clickable { expanded = !expanded },
         ) {
             Row(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = filterName,
+                    text = displayText,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                    color = contentColor,
                 )
                 Icon(
                     imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                     contentDescription = if (expanded) "Fermer" else "Ouvrir",
                     modifier = Modifier.padding(start = 4.dp),
-                    tint = MaterialTheme.colorScheme.onBackground,
+                    tint = contentColor,
                 )
             }
         }
@@ -66,19 +75,53 @@ fun FilterChipDropdown(
             onDismissRequest = { expanded = false },
             shape = RoundedCornerShape(16.dp),
             containerColor = MaterialTheme.colorScheme.background,
-            border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+            border = borderStroke,
         ) {
-            options.forEach { option ->
+            if (isSelected) {
                 DropdownMenuItem(
                     text = {
                         Text(
-                            text = option,
+                            text = "Tous ($filterName)",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onBackground,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
                         )
                     },
                     onClick = {
-                        onOptionSelected(option)
+                        onOptionSelected(null)
+                        expanded = false
+                    },
+                )
+            }
+
+            options.forEach { option ->
+                val optionIsSelected = option == selectedOption
+                DropdownMenuItem(
+                    text = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = option,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = if (optionIsSelected) FontWeight.Bold else FontWeight.Normal,
+                                color = if (optionIsSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
+                                modifier = Modifier.weight(1f),
+                            )
+                            if (optionIsSelected) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Sélectionné",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(start = 8.dp),
+                                )
+                            }
+                        }
+                    },
+                    onClick = {
+                        if (optionIsSelected) {
+                            onOptionSelected(null)
+                        } else {
+                            onOptionSelected(option)
+                        }
                         expanded = false
                     },
                 )

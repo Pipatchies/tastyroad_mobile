@@ -5,14 +5,20 @@ import androidx.lifecycle.viewModelScope
 import fr.tastyroad.domain.Itinerary
 import fr.tastyroad.domain.ItineraryDisplayItem
 import fr.tastyroad.repository.ItineraryRepository
+import fr.tastyroad.ui.components.filter.FilterState
+import fr.tastyroad.ui.components.filter.matchesFilter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class HomeUiState(
     val isLoading: Boolean = false,
     val itineraries: List<ItineraryDisplayItem> = emptyList(),
+    val filteredItineraries: List<ItineraryDisplayItem> = emptyList(),
+    val filterState: FilterState = FilterState(),
+    val searchQuery: String = "",
     val errorMessage: String? = null,
 )
 
@@ -28,9 +34,9 @@ class HomeViewModel(
 
     fun fetchTopItineraries() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
-                val topItineraries = itineraryRepository.getTopItineraries(limit = 5)
+                val topItineraries = itineraryRepository.getTopItineraries(limit = 10)
 
                 val displayItems =
                     topItineraries.map { dto ->
@@ -53,11 +59,13 @@ class HomeViewModel(
                         )
                     }
 
-                _uiState.value =
-                    _uiState.value.copy(
+                _uiState.update { currentState ->
+                    currentState.copy(
                         isLoading = false,
                         itineraries = displayItems,
+                        filteredItineraries = applyFilters(displayItems, currentState.filterState),
                     )
+                }
             } catch (e: Exception) {
                 val msg = e.message?.lowercase() ?: e.toString().lowercase()
                 val error =
@@ -70,12 +78,33 @@ class HomeViewModel(
                             "Une erreur est survenue lors de la récupération des itinéraires à la une."
                     }
 
-                _uiState.value =
-                    _uiState.value.copy(
+                _uiState.update {
+                    it.copy(
                         isLoading = false,
                         errorMessage = error,
                     )
+                }
             }
         }
+    }
+
+    fun setFilter(filterState: FilterState) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                filterState = filterState,
+                filteredItineraries = applyFilters(currentState.itineraries, filterState),
+            )
+        }
+    }
+
+    fun onSearchQueryChange(query: String) {
+        _uiState.update { it.copy(searchQuery = query) }
+    }
+
+    private fun applyFilters(
+        items: List<ItineraryDisplayItem>,
+        filterState: FilterState,
+    ): List<ItineraryDisplayItem> {
+        return items.filter { item -> item.itinerary.matchesFilter(filterState) }
     }
 }
