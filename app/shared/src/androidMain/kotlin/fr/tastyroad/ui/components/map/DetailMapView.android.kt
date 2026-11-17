@@ -130,7 +130,7 @@ actual fun DetailMapView(
                     map.fitBounds(polyline.getBounds(), { padding: [20, 20] });
 
                     var osrmCoords = stepPoints.map(function(p) { return p[1] + ',' + p[0]; }).join(';');
-                    var osrmUrl = 'https://router.project-osrm.org/route/v1/foot/' + osrmCoords + '?overview=full&geometries=geojson';
+                    var osrmUrl = 'https://routing.openstreetmap.de/routed-foot/route/v1/foot/' + osrmCoords + '?overview=full&geometries=geojson';
 
                     fetch(osrmUrl)
                         .then(function(res) { return res.json(); })

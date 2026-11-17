@@ -187,7 +187,16 @@ actual fun CreationMapView(
                     }
 
                     var coords = points.map(function(p) { return p.lng + ',' + p.lat; }).join(';');
-                    var url = 'https://router.project-osrm.org/route/v1/' + profile + '/' + coords + '?overview=full&geometries=geojson';
+                    var osrmEndpoint = 'routed-foot';
+                    var osrmProfileName = 'foot';
+                    if (profile === 'bike') {
+                        osrmEndpoint = 'routed-bike';
+                        osrmProfileName = 'bike';
+                    } else if (profile === 'driving') {
+                        osrmEndpoint = 'routed-car';
+                        osrmProfileName = 'driving';
+                    }
+                    var url = 'https://routing.openstreetmap.de/' + osrmEndpoint + '/route/v1/' + osrmProfileName + '/' + coords + '?overview=full&geometries=geojson';
 
                     fetch(url)
                         .then(function(response) { return response.json(); })
@@ -198,7 +207,7 @@ actual fun CreationMapView(
                                 polyline.setLatLngs(routeCoords);
 
                                 var totalDistKm = route.distance / 1000.0;
-                                var durationMins = Math.round((route.duration * getSpeedMultiplier()) / 60.0);
+                                var durationMins = Math.round(route.duration / 60.0);
 
                                 var pathGeoJson = {
                                     type: "LineString",
