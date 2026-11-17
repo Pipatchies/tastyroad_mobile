@@ -19,11 +19,14 @@ sealed class Screen {
 
     // --- Les autres écrans ---
     @Serializable
-    data object Map : Screen()
+    data class Map(val searchQuery: String? = null) : Screen()
 
     @Serializable
     data class ItineraryDetail(val itineraryId: Int) : Screen()
 
     @Serializable
     data object CreateItinerary : Screen()
+
+    @Serializable
+    data object NotFound : Screen()
 }

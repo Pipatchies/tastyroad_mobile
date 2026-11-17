@@ -28,6 +28,7 @@ import fr.tastyroad.ui.viewmodels.HomeViewModel
 @Composable
 fun HomeScreen(
     onMapClick: () -> Unit = {},
+    onSearchToMap: (String) -> Unit = {},
     onItineraryClick: (Int) -> Unit = {},
     viewModel: HomeViewModel = viewModel { HomeViewModel() },
 ) {
@@ -41,7 +42,15 @@ fun HomeScreen(
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background),
         ) {
-            Header()
+            Header(
+                searchQuery = uiState.searchQuery,
+                onSearchQueryChange = { viewModel.onSearchQueryChange(it) },
+                onSearchSubmitted = { query ->
+                    if (query.isNotBlank()) {
+                        onSearchToMap(query)
+                    }
+                },
+            )
 
             Column(
                 modifier =
@@ -50,7 +59,10 @@ fun HomeScreen(
                         .verticalScroll(scrollState),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                FilterSection()
+                FilterSection(
+                    filterState = uiState.filterState,
+                    onFilterChanged = { viewModel.setFilter(it) },
+                )
 
                 Text(
                     text = "A LA UNE",
@@ -69,14 +81,14 @@ fun HomeScreen(
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(horizontal = 24.dp),
                     )
-                } else if (uiState.itineraries.isEmpty()) {
+                } else if (uiState.filteredItineraries.isEmpty()) {
                     Spacer(modifier = Modifier.height(32.dp))
                     Text(
-                        text = "Aucun itinéraire trouvé.",
+                        text = "Aucun itinéraire ne correspond à vos critères.",
                         color = MaterialTheme.colorScheme.onBackground,
                     )
                 } else {
-                    uiState.itineraries.forEach { item ->
+                    uiState.filteredItineraries.forEach { item ->
                         ItineraryCard(
                             item = item,
                             onClick = {

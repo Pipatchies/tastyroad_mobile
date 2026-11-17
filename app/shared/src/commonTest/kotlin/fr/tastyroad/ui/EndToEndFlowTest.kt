@@ -3,6 +3,7 @@ package fr.tastyroad.ui
 import fr.tastyroad.domain.MockData
 import fr.tastyroad.domain.User
 import fr.tastyroad.session.AuthSession
+import fr.tastyroad.ui.navigation.Screen
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -78,5 +79,14 @@ class EndToEndFlowTest {
         AuthSession.logout()
         assertFalse(AuthSession.isLoggedIn, "La suppression du compte déconnecte et efface la session")
         assertNull(AuthSession.currentUser)
+
+        // --- 5. ÉCRANS SECONDAIRES & ERREUR 404 ---
+        val communityScreen: Screen = Screen.Community
+        val favoritesScreen: Screen = Screen.Favorites
+        val notFoundScreen: Screen = Screen.NotFound
+
+        assertNotNull(communityScreen)
+        assertNotNull(favoritesScreen)
+        assertNotNull(notFoundScreen)
     }
 }

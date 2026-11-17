@@ -13,5 +13,8 @@ data class MapClusterData(
 @Composable
 expect fun InteractiveMapView(
     clusters: List<MapClusterData>,
+    centerLat: Double? = null,
+    centerLng: Double? = null,
+    zoomLevel: Int? = null,
     modifier: Modifier = Modifier,
 )

@@ -18,6 +18,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -36,9 +37,16 @@ import fr.tastyroad.ui.viewmodels.MapViewModel
 fun MapScreen(
     onCloseClick: () -> Unit,
     onCreateItineraryClick: () -> Unit,
+    initialSearchQuery: String? = null,
     viewModel: MapViewModel = viewModel { MapViewModel() },
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(initialSearchQuery) {
+        if (!initialSearchQuery.isNullOrBlank()) {
+            viewModel.initializeSearch(initialSearchQuery)
+        }
+    }
 
     Column(
         modifier =
@@ -46,9 +54,16 @@ fun MapScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background),
     ) {
-        Header()
+        Header(
+            searchQuery = uiState.searchQuery,
+            onSearchQueryChange = { viewModel.onSearchQueryChange(it) },
+            onSearchSubmitted = { viewModel.performSearch(it) },
+        )
 
-        FilterSection()
+        FilterSection(
+            filterState = uiState.filterState,
+            onFilterChanged = { viewModel.setFilter(it) },
+        )
 
         Box(
             modifier =
@@ -65,6 +80,9 @@ fun MapScreen(
             } else {
                 InteractiveMapView(
                     clusters = uiState.clusters,
+                    centerLat = uiState.centerLat,
+                    centerLng = uiState.centerLng,
+                    zoomLevel = uiState.zoomLevel,
                     modifier = Modifier.fillMaxSize(),
                 )
             }
